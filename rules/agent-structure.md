@@ -49,3 +49,30 @@ Exception hierarchy: NotFoundException→404, ValidationException→422, Forbidd
 No try-catch in handlers — throw exception, global handler catches.
 → [Details](children/error-handling.md)
 ```
+
+## Blueprint Pattern (Mandatory)
+
+Every agent has a **primary production unit** — the main thing it creates repeatedly. This unit MUST have a blueprint file in `children/` that contains:
+
+1. **Template** — the structural skeleton of the production unit (code scaffold)
+2. **Checklist** — everything that must be verified before the unit is complete
+3. **Naming conventions** — how files, classes, methods are named
+4. **Lifecycle** — creation → registration → testing flow
+
+When the agent needs to create a new instance of its production unit, it reads the blueprint and follows it step by step.
+
+| Agent | Primary Production Unit | Blueprint File |
+|-------|------------------------|----------------|
+| API Agent | Feature (Command/Query/Handler/Validator) | `children/workflows.md` |
+| Socket Agent | Hub method + Event | `children/hub-method-blueprint.md` |
+| Worker Agent | Scheduled Job | `children/job-blueprint.md` |
+| Flutter Agent | Screen / Widget | `children/screen-blueprint.md` |
+| React Agent | Component / Page | `children/component-blueprint.md` |
+
+### Why This Matters
+
+Without a blueprint, the agent guesses how to create new units. With a blueprint:
+- Every unit follows the same structure
+- Nothing is forgotten (checklist guarantees completeness)
+- New team members (or new Claude sessions) produce consistent output
+- Quality is repeatable, not accidental
