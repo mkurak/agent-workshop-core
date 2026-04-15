@@ -66,7 +66,7 @@ Create if it doesn't exist. If it exists, append. Format:
 
 ### 5. Write to Team Repo (general ones)
 
-The agent file is edited via symlink — it actually updates `~/agent-teams/{team}/agents/{agent}.md`.
+The agent file is edited via symlink — it actually updates `~/.claude/repos/mkurak/{team}/agents/{agent}.md`.
 
 Types of updates to make:
 - **New rule** — Add to the relevant section in the agent file
@@ -76,7 +76,7 @@ Types of updates to make:
 ### 6. Push Team Repo (if there's a general update)
 
 ```bash
-cd ~/agent-teams/{team-name}
+cd ~/.claude/repos/mkurak/{team-name}
 git add -A
 git commit -m "learn: {short learning summary}"
 git push

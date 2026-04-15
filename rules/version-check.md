@@ -7,7 +7,7 @@ On **every prompt** — silently, before processing the user's message.
 ## What It Does
 
 1. **Check global repos** (core, skills):
-   - For each directory in `~/agent-teams/` that has a `.git/`:
+   - For each directory in `~/.claude/repos/mkurak/` that has a `.git/`:
      - Run `git fetch origin main --quiet`
      - Compare local HEAD with origin/main
      - If behind → `git pull --quiet`
@@ -15,7 +15,7 @@ On **every prompt** — silently, before processing the user's message.
 
 2. **Check project team repos:**
    - Read `.claude/.team-installs.json` (if exists)
-   - For each installed team, check its `~/agent-teams/{name}/` source
+   - For each installed team, check its `~/.claude/repos/mkurak/{name}/` source
    - Same fetch/compare/pull as above
    - If new files were added → create new symlinks in `.claude/`
    - If files were removed → clean broken symlinks
@@ -30,7 +30,7 @@ On **every prompt** — silently, before processing the user's message.
 
 ```bash
 # Silent version check (runs in background)
-for team_dir in ~/agent-teams/*/; do
+for team_dir in ~/.claude/repos/mkurak/*/; do
   [ -d "${team_dir}/.git" ] || continue
   
   cd "$team_dir"

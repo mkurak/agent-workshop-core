@@ -25,7 +25,7 @@ Core infrastructure for all agent teams. Provides the memory system, journal, an
 
 ```
 Team Repo (global knowledge)          Project Memory (project-specific)
-~/agent-teams/{team}/agents/agent.md   .claude/agent-memory/{agent}-memory.md
+~/.claude/repos/mkurak/{team}/agents/agent.md   .claude/agent-memory/{agent}-memory.md
 ├── Patterns that work everywhere      ├── What worked in THIS project
 ├── Anti-patterns to avoid             ├── Project-specific discoveries
 └── Updated via /save-learnings        └── Updated via /save-learnings

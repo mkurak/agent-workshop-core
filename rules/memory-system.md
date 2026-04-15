@@ -14,7 +14,7 @@ Each project can have its own memory file for each agent. This file stores what 
 - Format: date-headed, categorized (what worked / what didn't work / emerging)
 
 ### Team Knowledge Base (global)
-**Location:** `~/agent-teams/{team}/agents/{agent}.md`
+**Location:** `~/.claude/repos/mkurak/{team}/agents/{agent}.md`
 
 The agent's knowledge that applies across all projects. Rarely changes but learnings from any project can be added here as well.
 
