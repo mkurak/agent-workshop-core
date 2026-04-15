@@ -47,8 +47,19 @@ At the start of every conversation, the agent should read the following files (i
 
 ## End of Conversation Routine
 
-Calling `/save-learnings` at the end of every conversation is encouraged. This:
-1. Extracts learnings from the conversation
-2. Writes to project memory and/or team repo with user confirmation
-3. Adds a note to the journal
-4. Automatically pushes if team repo was updated
+**MANDATORY:** Before the conversation ends, proactively check if anything was learned. Do NOT wait for the user to ask — the user may forget. This is YOUR responsibility.
+
+When the conversation involved any of the following, learnings MUST be saved:
+- A bug was found and fixed
+- A new pattern or approach was discovered
+- Something didn't work and a workaround was applied
+- A decision was made that affects future development
+- A tool, library, or configuration behaved unexpectedly
+
+**Process:**
+1. Before ending, ask the user: "I learned some things in this session. Should I save them?"
+2. List what was learned (briefly)
+3. If approved, write to project memory, team repo (if general), and journal
+4. If team repo updated, auto git push
+
+If nothing was learned (simple Q&A, no development work), skip silently — don't ask unnecessarily.
