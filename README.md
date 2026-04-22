@@ -10,6 +10,7 @@ Core infrastructure for all agent teams. Provides the memory system, journal, le
 | Rule | `rules/memory-system.md` | Memory & journal system rules (auto-loaded every session) |
 | Rule | `rules/agent-structure.md` | Agent configuration rules (children pattern, blueprint pattern) |
 | Rule | `rules/version-check.md` | Automatic version checking on every prompt |
+| Rule | `rules/karpathy-guidelines.md` | Four coding principles (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution) |
 | Template | `templates/agent-memory.md` | Template for per-project agent memory files |
 | Template | `templates/journal-entry.md` | Template for inter-agent journal entries |
 

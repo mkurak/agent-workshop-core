@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Core infrastructure for all AgentTeamLand teams — memory system, journal, version check, learning pipeline, schema definitions",
   "author": {
     "name": "AgentTeamLand",
@@ -20,7 +20,8 @@
   "rules": [
     { "name": "memory-system", "description": "4-layer knowledge model (memory, journal, wiki, docs)" },
     { "name": "agent-structure", "description": "Children pattern + Knowledge Base + Blueprint pattern for agents" },
-    { "name": "version-check", "description": "Auto-pull agentteamland repos on every prompt" }
+    { "name": "version-check", "description": "Auto-pull agentteamland repos on every prompt" },
+    { "name": "karpathy-guidelines", "description": "Four coding principles (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution) — reduce LLM coding mistakes" }
   ],
   "extends": null,
   "excludes": [],
