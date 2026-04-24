@@ -14,6 +14,7 @@ Core infrastructure for all agent teams. Provides the memory system, journal, wi
 | Rule | `rules/version-check.md` | Automatic version checking on every prompt (hook-driven) |
 | Rule | `rules/learning-capture.md` | Inline `<!-- learning -->` marker protocol — cheap, greppable, hook-processed |
 | Rule | `rules/docs-sync.md` | Proactive docs sync: README / doc-site updates in the same turn as user-facing changes |
+| Rule | `rules/team-repo-maintenance.md` | Governance for team / global repo changes: semver bump + conventional commit + PR flow |
 | Rule | `rules/karpathy-guidelines.md` | Four coding principles (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution) |
 | Template | `templates/agent-memory.md` | Template for per-project agent memory files |
 | Template | `templates/journal-entry.md` | Template for inter-agent journal entries |
