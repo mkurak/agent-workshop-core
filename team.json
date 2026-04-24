@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "core",
   "version": "1.3.1",
-  "description": "Core infrastructure for all AgentTeamLand teams — memory system, journal, wiki, version check, learning pipeline (inline markers + hook-driven capture), docs-sync, team-repo maintenance governance, schema definitions",
+  "description": "Core infrastructure for AgentTeamLand teams — memory, journal, wiki, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy-guidelines, schemas",
   "author": {
     "name": "AgentTeamLand",
     "url": "https://github.com/agentteamland"
