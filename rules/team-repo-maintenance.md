@@ -13,7 +13,20 @@ Any time you modify a file in a cached team repo or global repo (core, brainstor
 - Your own local project's `.claude/` (that's project memory, not shared)
 - `homebrew-tap` / `scoop-bucket` / `winget-pkgs` (goreleaser-managed, direct-push allowed for the release pipeline)
 
-## Four sabit adım
+## Five sabit adım
+
+### 0. Run `/save-learnings` before opening the PR
+
+Before steps 1-4 below, run `/save-learnings` as the **last commit on the feature branch**. This captures the wisdom from the work that's about to ship and lets it ride along in the same PR.
+
+Why this timing:
+- The PR boundary is a natural crystallization moment — decisions are concrete
+- `save-learnings` outputs that touch the **current PR's repo** (agent.md updates, README doc-impact drafts, new children files, known-issues entries) automatically commit on the feature branch and ship in the PR
+- Review covers both the work AND the extracted wisdom in one atomic unit
+
+The multi-repo caveat: `/save-learnings` often produces outputs that span repos (e.g., a learning about the design-system-team session might also update a wiki page in workspace, or add a rule to core). Only the outputs touching the **current PR's repo** ride along; other-repo outputs still need their own PR flow.
+
+This rule is paired with the inline `<!-- learning -->` marker + `SessionEnd` hook (see [learning-capture](learning-capture.md)). The PR-time `/save-learnings` captures crystallized learnings from work that's about to ship; the session-end hook catches learnings that emerge AFTER the PR (review feedback, conflict-resolution insights). They are complementary, not redundant — keep both.
 
 ### 1. Bump `team.json` version (or `internal/config.Version` for the CLI)
 
@@ -28,6 +41,22 @@ Follow semver strictly:
 For the CLI, version lives in `internal/config/config.go` (ldflags override at build time via goreleaser tag). For teams, version lives in `team.json`.
 
 **Never** ship a behavior change without a version bump — it silently breaks `atl update`'s "X → Y" notification, defeating the whole update pipeline.
+
+#### `team.json` format conventions
+
+When you edit `team.json`, follow the established format:
+
+1. **Pretty-print, multi-line objects** with 2-space indent. Each agent / skill / keyword on its own line.
+2. **`\u2014` Unicode escape for em-dash characters** in description strings (instead of literal `—`).
+
+This convention came from `python -m json.tool`'s defaults (used in design-system-team PR #1, 2026-04-25) and stuck. Validate after editing:
+
+```bash
+python3 -m json.tool team.json > /dev/null   # validate
+python3 -m json.tool team.json > tmp && mv tmp team.json   # reformat to convention
+```
+
+When a feature branch and main both edit `team.json` and conflict over format (e.g., compact vs pretty-print), **adopt main's format and re-apply the feature branch's content on top**. Don't fight the convention — fold into it.
 
 ### 2. Conventional commit format
 
