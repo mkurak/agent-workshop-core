@@ -40,7 +40,21 @@ If behind on main: `git pull --ff-only` first, then proceed.
 
 ## 2. Post-merge cleanup — immediate, automatic
 
-The user signals a PR merge in many ways: `"Onayladım"`, `"merged"`, `"approved + merged"`, `"merge ettim"`, `"closed and merged"`, etc. Whenever this signal arrives, your **next action** in that repo is:
+The user signals a PR merge in many ways. The signal can be **direct**:
+
+- `"Onayladım"`, `"merged"`, `"approved + merged"`, `"merge ettim"`, `"closed and merged"`
+
+…or **indirect** — and the indirect cases are the ones that historically failed to trigger the reflex:
+
+- `"PR kalmadı"` / `"onaylanacak bir şey yok"` — implies all PRs are merged
+- `"hepsi merged"` / `"tüm PR'lar bitti"`
+- A screenshot of an empty GitHub PR inbox
+- A screenshot of branch state showing local commits ahead-of-main with "Create PR" button (= local is behind merged remote main)
+- The user asking "neden burada hâlâ X branch görünüyor" / "Create PR butonu görünüyor" — the very fact they're asking means drift is visible to them
+
+**Default rule when uncertain**: if the user mentions PR state in any form, run `/repo-status` (workspace) or the manual `gh pr list` checks (anywhere) BEFORE assuming. Uncertainty is a signal to verify, not to assume the previous state still holds.
+
+Once the merge signal is detected (direct OR indirect), your **next action** in each affected repo is:
 
 ```bash
 cd <affected-repo>
@@ -64,13 +78,41 @@ Some files are validated against schemas, length limits, or other rules by the C
 
 Known cases as of writing:
 
-| File | Local validator | Why |
+| Concern | Local validator | Why |
 |---|---|---|
-| `team.json` (any agentteamland repo) | `~/.claude/repos/agentteamland/core/scripts/validate-team-json.sh <path>` | Schema-validated by CI — has bitten 3× in production for description maxLength=200 |
+| `team.json` schema (any agentteamland repo) | `~/.claude/repos/agentteamland/core/scripts/validate-team-json.sh <path>` | Schema-validated by CI — has bitten 3× in production for description maxLength=200 |
+| Personal-machine paths + user-private strings (any file in any agentteamland repo) | `~/.claude/repos/agentteamland/core/scripts/scan-personal-paths.sh` | Catches `/Users/<name>/`, `/home/<name>/`, `C:\Users\<name>\` paths; reads user-private strings (project names etc.) from `~/.claude/scan-personal-strings.conf` (NOT checked into any repo). Caught at least one absolute-path leak in production (workspace#4 first commit, fixed pre-merge after user spotted it in PR review) |
 
 When you add a new file with machine-checkable constraints to any agentteamland repo, **also add a local validator script** to `core/scripts/` and update this table. Otherwise the constraint will get forgotten the same way `team.json`'s did.
 
 The rule is "**validate-once-trust-never**" — every push touching a constrained file gets re-validated locally, no exceptions, no "this is just a small change."
+
+### Recommended pre-push routine
+
+Before any push to an agentteamland repo, run both validators in sequence:
+
+```bash
+# From inside the repo being pushed
+~/.claude/repos/agentteamland/core/scripts/scan-personal-paths.sh
+~/.claude/repos/agentteamland/core/scripts/validate-team-json.sh team.json   # if team.json was edited
+```
+
+Both are idempotent and fast (sub-second on typical staging areas). The cost of running them is trivial; the cost of skipping is a CI failure or — worse — a leaked path that lands in a public commit.
+
+### User-private string config (the file that doesn't go in a repo)
+
+`scan-personal-paths.sh` reads from `~/.claude/scan-personal-strings.conf` if it exists. The format is one pattern per line:
+
+```
+# Personal project names (kept out of public commits)
+my-private-project
+internal-codename
+
+# Personal hostnames or scratch identifiers (regex prefix for ERE):
+regex:my-scratch-\w+
+```
+
+This config file lives in the maintainer's home — **never** in a public repo, including `core` itself. The script in `core/scripts/` only carries universal OS-path patterns; the user-specific strings are read from this private config so the very mechanism for preventing leaks doesn't itself become a leak.
 
 ## Tool support — `/repo-status` skill (workspace-scoped)
 
