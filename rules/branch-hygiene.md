@@ -42,15 +42,17 @@ If behind on main: `git pull --ff-only` first, then proceed.
 
 The user signals a PR merge in many ways. The signal can be **direct**:
 
-- `"Onayladım"`, `"merged"`, `"approved + merged"`, `"merge ettim"`, `"closed and merged"`
+- `"approved"`, `"merged"`, `"approved + merged"`, `"closed and merged"`
 
 …or **indirect** — and the indirect cases are the ones that historically failed to trigger the reflex:
 
-- `"PR kalmadı"` / `"onaylanacak bir şey yok"` — implies all PRs are merged
-- `"hepsi merged"` / `"tüm PR'lar bitti"`
+- `"no PRs left"` / `"nothing left to approve"` — implies all PRs are merged
+- `"all merged"` / `"all PRs done"`
 - A screenshot of an empty GitHub PR inbox
 - A screenshot of branch state showing local commits ahead-of-main with "Create PR" button (= local is behind merged remote main)
-- The user asking "neden burada hâlâ X branch görünüyor" / "Create PR butonu görünüyor" — the very fact they're asking means drift is visible to them
+- The user asking "why is the X branch still showing here" / "the Create PR button is still visible" — the very fact they're asking means drift is visible to them
+
+Note: detection is **semantic**, not lexical. Equivalent phrasings in any language map to the same intent — the examples above are illustrative, not an exhaustive whitelist.
 
 **Default rule when uncertain**: if the user mentions PR state in any form, run `/repo-status` (workspace) or the manual `gh pr list` checks (anywhere) BEFORE assuming. Uncertainty is a signal to verify, not to assume the previous state still holds.
 
@@ -126,7 +128,7 @@ Use it:
 
 - At session start in workspace, before deciding what to work on
 - After a merge train of multiple PRs
-- Anytime the user asks "ortam temiz mi" / "tüm repolar main'de mi" / "açık PR var mı"
+- Anytime the user asks "is the working tree clean" / "are all repos on main" / "any open PRs"
 - Anytime YOU (the agent) feel uncertain about state — uncertainty is a signal to verify, not to assume
 
 Outside workspace (e.g., in a project that imports a team), the agent uses the manual git/gh checks from sections 1 and 2 directly. The /repo-status skill specifically covers the workspace's multi-repo topology.
@@ -141,7 +143,7 @@ Outside workspace (e.g., in a project that imports a team), the agent uses the m
 
 ## History
 
-This rule was created on 2026-04-25 after a session shipped three PRs (design-system-team@0.5.0, workspace state snapshot, core@1.4.0), all of which merged cleanly, but then six local checkouts (workspace + 5 peer/cached repos) remained on the now-stale feature branches. The user surfaced the drift with the question "tüm repolar main'de mi"; the agent had to clean up post-hoc. The trust gap was real: the agent had been claiming a state ("we're in good shape") without verifying it. This rule + the `/repo-status` skill close that gap by making verification the default, not the exception.
+This rule was created on 2026-04-25 after a session shipped three PRs (design-system-team@0.5.0, workspace state snapshot, core@1.4.0), all of which merged cleanly, but then six local checkouts (workspace + 5 peer/cached repos) remained on the now-stale feature branches. The user surfaced the drift with the question "are all repos on main"; the agent had to clean up post-hoc. The trust gap was real: the agent had been claiming a state ("we're in good shape") without verifying it. This rule + the `/repo-status` skill close that gap by making verification the default, not the exception.
 
 Companion rules:
 

@@ -13,7 +13,7 @@ Any time you modify a file in a cached team repo or global repo (core, brainstor
 - Your own local project's `.claude/` (that's project memory, not shared)
 - `homebrew-tap` / `scoop-bucket` / `winget-pkgs` (goreleaser-managed, direct-push allowed for the release pipeline)
 
-## Five sabit adım
+## Five fixed steps
 
 ### 0. Run `/save-learnings` before opening the PR
 
@@ -179,7 +179,7 @@ Even when:
 - The PR is trivial (one-line typo, formatting fix, broken link)
 - `required_approving_review_count` is 0 (solo maintainer)
 - The PR was authored by Claude itself
-- The user said "push this" or "yapalım" earlier in the conversation
+- The user said "push this" or "let's do it" earlier in the conversation
 - Branch protection would allow admin bypass
 - The maintainer is unreachable and a hotfix feels urgent
 
@@ -204,7 +204,7 @@ Even when:
 
 After `gh pr create` succeeds, surface the URL and stop on that PR:
 
-> PR açıldı: https://github.com/.../pull/N — review edip merge ettiğinde söyle, devam ederim.
+> PR opened: https://github.com/.../pull/N — let me know once you've reviewed and merged, and I'll continue.
 
 Do not wait on CI to auto-merge on green. Do not self-approve. Do not re-invoke `gh pr merge` "because nothing has happened for 5 minutes." The merge action is the user's signal that they've reviewed; skipping that signal destroys the gate.
 
