@@ -1,75 +1,75 @@
 {
-    "schemaVersion": 1,
-    "name": "core",
-    "version": "1.6.1",
-    "description": "Core infrastructure for AgentTeamLand teams \u2014 memory, journal, wiki, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy-guidelines, schemas",
-    "author": {
-        "name": "AgentTeamLand",
-        "url": "https://github.com/agentteamland"
+  "schemaVersion": 1,
+  "name": "core",
+  "version": "1.6.2",
+  "description": "Core infrastructure for AgentTeamLand teams \u2014 memory, journal, wiki, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy-guidelines, schemas",
+  "author": {
+    "name": "AgentTeamLand",
+    "url": "https://github.com/agentteamland"
+  },
+  "license": "MIT",
+  "keywords": [
+    "core",
+    "memory",
+    "journal",
+    "rules",
+    "infrastructure"
+  ],
+  "repository": "https://github.com/agentteamland/core",
+  "homepage": "https://github.com/agentteamland",
+  "agents": [],
+  "skills": [
+    {
+      "name": "save-learnings",
+      "description": "Save end-of-conversation learnings to project memory, wiki (mandatory), team repo, and journal; prepares doc drafts for doc-impact markers"
     },
-    "license": "MIT",
-    "keywords": [
-        "core",
-        "memory",
-        "journal",
-        "rules",
-        "infrastructure"
-    ],
-    "repository": "https://github.com/agentteamland/core",
-    "homepage": "https://github.com/agentteamland",
-    "agents": [],
-    "skills": [
-        {
-            "name": "save-learnings",
-            "description": "Save end-of-conversation learnings to project memory, wiki (mandatory), team repo, and journal; prepares doc drafts for doc-impact markers"
-        },
-        {
-            "name": "create-code-diagram",
-            "description": "Generate full project Mermaid class diagram"
-        },
-        {
-            "name": "wiki",
-            "description": "Living project knowledge base (init, ingest, query, lint)"
-        }
-    ],
-    "rules": [
-        {
-            "name": "memory-system",
-            "description": "4-layer knowledge model (memory, journal, wiki, docs)"
-        },
-        {
-            "name": "agent-structure",
-            "description": "Children pattern + Knowledge Base + Blueprint pattern for agents"
-        },
-        {
-            "name": "version-check",
-            "description": "Auto-pull agentteamland repos on every prompt"
-        },
-        {
-            "name": "karpathy-guidelines",
-            "description": "Four coding principles (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution) \u2014 reduce LLM coding mistakes"
-        },
-        {
-            "name": "learning-capture",
-            "description": "Inline <!-- learning --> marker protocol: drop markers when learning moments occur; session-end hook (atl learning-capture) scans and processes them"
-        },
-        {
-            "name": "docs-sync",
-            "description": "Proactive docs sync: when user-facing behavior changes, update README / doc site in the same turn (or mark doc-impact for session-end backstop)"
-        },
-        {
-            "name": "team-repo-maintenance",
-            "description": "Governance for shared team/global repo changes: save-learnings + semver bump + conventional commit + Discovered-via + PR flow (branch-protection enforced); plus team.json format conventions"
-        },
-        {
-            "name": "branch-hygiene",
-            "description": "Three checkpoints to counter drift: verify main + clean before tasks in shared repos; checkout main + pull right after PR merge; run local validator before pushing constrained files."
-        }
-    ],
-    "extends": null,
-    "excludes": [],
-    "dependencies": {},
-    "requires": {
-        "atl": ">=0.2.0"
+    {
+      "name": "create-code-diagram",
+      "description": "Generate full project Mermaid class diagram"
+    },
+    {
+      "name": "wiki",
+      "description": "Living project knowledge base (init, ingest, query, lint)"
     }
+  ],
+  "rules": [
+    {
+      "name": "memory-system",
+      "description": "4-layer knowledge model (memory, journal, wiki, docs)"
+    },
+    {
+      "name": "agent-structure",
+      "description": "Children pattern + Knowledge Base + Blueprint pattern for agents"
+    },
+    {
+      "name": "version-check",
+      "description": "Auto-pull agentteamland repos on every prompt"
+    },
+    {
+      "name": "karpathy-guidelines",
+      "description": "Four coding principles (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution) \u2014 reduce LLM coding mistakes"
+    },
+    {
+      "name": "learning-capture",
+      "description": "Inline <!-- learning --> marker protocol: drop markers when learning moments occur; session-end hook (atl learning-capture) scans and processes them"
+    },
+    {
+      "name": "docs-sync",
+      "description": "Proactive docs sync: when user-facing behavior changes, update README / doc site in the same turn (or mark doc-impact for session-end backstop)"
+    },
+    {
+      "name": "team-repo-maintenance",
+      "description": "Governance for shared team/global repo changes: save-learnings + semver bump + conventional commit + Discovered-via + PR flow (branch-protection enforced); plus team.json format conventions"
+    },
+    {
+      "name": "branch-hygiene",
+      "description": "Three checkpoints to counter drift: verify main + clean before tasks in shared repos; checkout main + pull right after PR merge; run local validator before pushing constrained files."
+    }
+  ],
+  "extends": null,
+  "excludes": [],
+  "dependencies": {},
+  "requires": {
+    "atl": ">=0.2.0"
+  }
 }

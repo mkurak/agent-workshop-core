@@ -42,6 +42,16 @@ For the CLI, version lives in `internal/config/config.go` (ldflags override at b
 
 **Never** ship a behavior change without a version bump — it silently breaks `atl update`'s "X → Y" notification, defeating the whole update pipeline.
 
+#### When NOT to bump
+
+Genuinely docs-only PRs (translations, typo fixes, README updates, comment changes) carry no behavior delta and don't need to surface in `atl update`'s X→Y notification. If `main` carries pre-existing schema violations on `team.json` (most often the 200-char description ceiling), bumping forces a same-PR trim that bloats scope. The pragmatic move:
+
+1. Skip the bump on the docs-only PR.
+2. Note the skip explicitly in the PR body — e.g., "Version bump: skipped — `main` carries pre-existing description-length violations; will be addressed in a follow-up `chore: trim ...` PR."
+3. Open a dedicated `chore: trim team.json descriptions` PR with the bump.
+
+The "version bump for every change" rule is about ensuring users see meaningful behavior deltas — not about ceremonial cadence on cosmetic edits. Discovered during the 2026-04-26 Turkish-content cleanup sweep, where bumping forced unrelated trim work onto two team repos and was instead split into dedicated follow-ups (design-system-team#5, software-project-team#3).
+
 #### `team.json` format conventions
 
 When you edit `team.json`, follow the established format:
