@@ -210,6 +210,19 @@ Even when:
 - Closing (`gh pr close`) — destructive; only the author or user closes PRs
 - Reopening a closed PR without explicit user instruction
 
+### Exception: GitHub native auto-merge via tooling
+
+The merge discipline above forbids Claude from running `gh pr merge` to land a PR. There is **one narrow exception**: when the user explicitly authorizes auto-merge through tooling — most commonly `/create-pr --auto-merge` — Claude may run `gh pr merge --auto --merge` to enable GitHub's native auto-merge.
+
+This exception is bounded:
+
+- **The flag must come from the user in the same turn.** "Earlier authorization" or "broad authorization" does NOT count. The user typing `--auto-merge` (or equivalent explicit instruction) is the gate.
+- **`--auto` is required.** Anything that merges immediately (`gh pr merge` without `--auto`) is still forbidden.
+- **Branch protection's check gate is preserved.** GitHub waits for required checks to pass before merging; if checks fail, the merge does not happen. The "review gate" is delegated to CI — not skipped.
+- **No exception for `--approve`, `--squash` without `--auto`, or any other merge variant.** Only `gh pr merge --auto --merge` (or `--auto --squash` / `--auto --rebase` if the repo's settings dictate that strategy) is in scope.
+
+If the user did NOT pass an explicit auto-merge flag through tooling, the original prohibition stands: surface the PR URL and stop.
+
 ### Handoff after opening a PR
 
 After `gh pr create` succeeds, surface the URL and stop on that PR:

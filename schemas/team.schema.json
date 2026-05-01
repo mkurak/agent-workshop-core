@@ -112,6 +112,18 @@
       },
       "default": []
     },
+    "capabilities": {
+      "description": "Optional capabilities this team provides via designated agents. Maps capability type to an agent name (must match an entry in the agents array). Used by tooling like /create-pr to discover team-specific specialists.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "review": {
+          "description": "Name of the agent designated for code review. Must match an entry in the agents array. Invoked by /create-pr after the generic review baseline as an additive specialist.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        }
+      }
+    },
     "extends": {
       "description": "Parent team name + version constraint (e.g. 'software-project-team@^1.0.0'). Parent's agents/skills/rules are inherited; children override by name. Use null for no parent.",
       "oneOf": [
