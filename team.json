@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "description": "Core infrastructure for AgentTeamLand teams \u2014 memory, journal, wiki, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy-guidelines, schemas",
   "author": {
     "name": "AgentTeamLand",
@@ -30,6 +30,10 @@
     {
       "name": "wiki",
       "description": "Living project knowledge base (init, ingest, query, lint)"
+    },
+    {
+      "name": "create-pr",
+      "description": "Move dirty changes to an auto-named branch, run save-learnings + AI review chain, open PR; optional --auto-merge with polling + auto-fix loop; end-of-work returns to target branch"
     }
   ],
   "rules": [
