@@ -75,9 +75,9 @@ Do not ask the user to confirm names — generate, proceed.
 
 ### Step 4 — Save learnings (unless `--no-learning`)
 
-Invoke `/save-learnings` in full transcript mode (no `--from-markers` flag). This:
-- Writes wiki / agent-memory / journal updates (project-local).
-- Updates team-repo files via symlinks if any (these will be picked up by the upcoming commit).
+Invoke `/save-learnings` in manual mode (no `--from-markers` flag — analyzes the live conversation). This:
+- Writes wiki / journal / agent children / skill learnings updates (project-local).
+- Updates team-repo files for maintainers with push access; users without push see a graceful permission-denied and stay local.
 - Prepares `doc-impact` drafts for any `<!-- learning -->` markers with `doc-impact: readme/docs/breaking`.
 
 For each prepared draft, present it inline to the user for accept/reject/edit:
@@ -346,3 +346,7 @@ Adjust the report fields to match what actually happened. If something was skipp
 - **Domain-aware review routing.** Each team agent declares `domains: ["*.tsx", ...]` glob; skill matches the diff's file types and invokes only relevant agents instead of all team reviewers. Reduces review time for narrow PRs.
 - **Parallel team review.** Run team reviewers concurrently instead of sequentially.
 - **Auto-fix scope expansion.** Extend in-scope to test failures where the test was added in the same diff (Claude wrote the test wrong).
+
+## Accumulated Learnings
+
+(Auto-rebuilt by /save-learnings from learnings/*.md frontmatter. Do not edit by hand. Currently empty — populates as the skill is used and edge-case learnings accumulate.)

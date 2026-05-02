@@ -88,7 +88,7 @@ The same two-layer system applies inside the user's project (`.claude/journal/`,
 - **Agent children files** (`children/{topic}.md` in the team repo's agent directory) are the team-side equivalent of wiki — topic-based, replace/update, cross-project domain knowledge for the agent.
 - **Skill learnings files** (`learnings/{topic}.md` in the team repo's skill directory) are the per-skill equivalent — same shape, scoped to the skill.
 
-Both have a `knowledge-base-summary:` frontmatter field that's auto-aggregated into agent.md (Knowledge Base section) or SKILL.md (Accumulated Learnings section) — see [agent-structure.md](agent-structure.md) for the extraction pattern.
+Both have a `knowledge-base-summary:` frontmatter field that's auto-aggregated into agent.md (Knowledge Base section) or skill.md (Accumulated Learnings section) — see [agent-structure.md](agent-structure.md) for the extraction pattern.
 
 ## History
 

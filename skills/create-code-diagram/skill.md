@@ -213,3 +213,7 @@ classDiagram
 4. **Correct arrow types.** Inheritance vs implementation vs dependency — use the right Mermaid syntax.
 5. **Re-runnable.** Running again overwrites the previous diagram. Always fresh.
 6. **No external tools needed.** Pure Mermaid markdown — viewable in GitHub, VS Code, any markdown renderer.
+
+## Accumulated Learnings
+
+(Auto-rebuilt by /save-learnings from learnings/*.md frontmatter. Do not edit by hand. Currently empty — populates as the skill is used and edge-case learnings accumulate.)

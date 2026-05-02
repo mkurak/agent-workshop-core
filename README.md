@@ -1,4 +1,4 @@
-# 🧬 Agent Workshop Core
+# 🧬 AgentTeamLand Core
 
 Core infrastructure for all agent teams. Provides the journal + wiki knowledge system, the auto-trigger learning-capture loop (inline markers + SessionStart hook + state-file-driven processing), the agent + skill structure rules, docs-sync discipline, and automatic version checking.
 
@@ -6,7 +6,7 @@ Core infrastructure for all agent teams. Provides the journal + wiki knowledge s
 
 | Type | File | Purpose |
 |------|------|---------|
-| Skill | `skills/save-learnings/` | Persist conversation learnings to journal + wiki + agent children + skill learnings; auto-rebuild agent.md / SKILL.md Knowledge Base sections from frontmatter; multi-transcript input via `--transcripts`; `AskUserQuestion` only for new structure creation |
+| Skill | `skills/save-learnings/` | Persist conversation learnings to journal + wiki + agent children + skill learnings; auto-rebuild agent.md / skill.md Knowledge Base sections from frontmatter; multi-transcript input via `--transcripts`; `AskUserQuestion` only for new structure creation |
 | Skill | `skills/wiki/` | Living project knowledge base (init, ingest, query, lint) |
 | Skill | `skills/create-code-diagram/` | Generate a full-project Mermaid class diagram |
 | Skill | `skills/create-pr/` | Auto-named branch + save-learnings + AI review chain + PR; optional auto-merge |
@@ -37,7 +37,7 @@ Team Repo (cross-project knowledge)                  Project (project-specific r
 │       ↳ knowledge-base-summary frontmatter         │                       (also auto-loaded into CLAUDE.md
 │                                                    │                        as <!-- wiki:index --> block)
 └── skills/{skill}/                                  └── docs/{topic}.md  ← settled brainstorm decisions
-    ├── SKILL.md  ← procedure + auto-rebuild
+    ├── skill.md  ← procedure + auto-rebuild
     │              "Accumulated Learnings"
     └── learnings/{topic}.md
         ↳ knowledge-base-summary frontmatter
@@ -83,8 +83,8 @@ Next Session Start:
     - Updates agent children/{topic}.md (with knowledge-base-summary frontmatter)
     - Rebuilds agent.md Knowledge Base section from children frontmatter
     - Updates skill learnings/{topic}.md (same frontmatter)
-    - Rebuilds SKILL.md Accumulated Learnings section
-    - For new skill / rule / agent / agent.md identity / SKILL.md core changes:
+    - Rebuilds skill.md Accumulated Learnings section
+    - For new skill / rule / agent / agent.md identity / skill.md core changes:
         AskUserQuestion (ONE multi-select prompt per run)
     - Writes ~/.claude/state/learning-capture-state.json (closes the loop)
     - Pushes team-repo writes (auto for maintainers, graceful fail otherwise)

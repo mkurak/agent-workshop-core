@@ -82,11 +82,10 @@ Scans all project knowledge sources and updates wiki pages:
 
 **Sources scanned:**
 1. `<!-- learning -->` markers in the current session transcript — primary source, see [learning-capture rule](../../rules/learning-capture.md)
-2. `.claude/agent-memory/*.md` — agent learnings
-3. `.claude/journal/*.md` — inter-agent notes
-4. `.claude/docs/*.md` — finalized decisions from brainstorms
-5. `.claude/brain-storms/*.md` (completed only) — decision context
-6. Recent conversation context — what was just discussed/built
+2. `.claude/journal/*.md` — chronological per-agent learning record (the post-Q4 single layer; supersedes the retired `agent-memory/`)
+3. `.claude/docs/*.md` — finalized decisions from brainstorms
+4. `.claude/brain-storms/*.md` (completed only) — decision context
+5. Recent conversation context — what was just discussed/built
 
 **Process:**
 1. Read all sources
@@ -102,7 +101,7 @@ Scans all project knowledge sources and updates wiki pages:
 # {Topic Title}
 
 > Last updated: {date}
-> Sources: [agent-memory](../agent-memory/api-agent-memory.md), [brainstorm](../brain-storms/auth-design.md)
+> Sources: [journal](../journal/2026-01-15_api-agent.md), [brainstorm](../brain-storms/auth-design.md)
 
 ## Summary
 {2-3 sentence overview of this topic in the project}
@@ -188,17 +187,17 @@ Auto-fixable issues are fixed silently. Contradictions and stale content are rep
 The normal flow when `atl setup-hooks` is installed:
 
 1. Claude drops `<!-- learning topic=... -->` markers inline during the conversation (per [learning-capture](../../rules/learning-capture.md) rule)
-2. Session end / PreCompact → `atl learning-capture` scans transcript for markers
-3. If markers found → `/save-learnings` runs on the marked regions
-4. `/save-learnings` updates agent-memory (append), journal, and wiki pages (replace/update)
+2. **SessionStart** of the next session → `atl session-start` runs `atl learning-capture --previous-transcripts`, which scans the previous session's transcripts for markers
+3. If markers found → the next session's first turn invokes `/save-learnings --from-markers --transcripts ...`
+4. `/save-learnings` updates `journal/`, agent `children/`, skill `learnings/`, and wiki pages (replace/update)
 
 Example propagation:
 
 ```
 <!-- learning topic: redis-cache; body: TTL should be 30 min, not 15 -->
-  → agent-memory: append historical note with date
+  → journal/{date}_{agent}.md: append historical note with date
   → wiki/redis-cache.md: UPDATE "TTL is 30 minutes" (replace old "15 minutes")
-  → journal/{date}_{agent}.md: cross-agent summary entry
+  → (if domain-specific) agents/{agent}/children/redis-cache.md: append or create
 ```
 
 Without markers (or without hooks), manual `/wiki ingest` and manual `/save-learnings` still work.
@@ -241,3 +240,7 @@ Update index.md
 5. **Agent-readable.** Pages are structured for both human and AI consumption — clear sections, no ambiguity.
 6. **Topic-based, not date-based.** Unlike journal (date-based) or memory (date-based), wiki is organized by topic. One page per concept.
 7. **Lint regularly.** Run `/wiki lint` periodically (monthly or when something feels off).
+
+## Accumulated Learnings
+
+(Auto-rebuilt by /save-learnings from learnings/*.md frontmatter. Do not edit by hand. Currently empty — populates as the skill is used and edge-case learnings accumulate.)

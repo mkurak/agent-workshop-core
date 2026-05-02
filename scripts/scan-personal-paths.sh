@@ -19,9 +19,26 @@
 # The script in this public repo only carries universal OS-path patterns.
 #
 # Usage:
-#   ./scripts/scan-personal-paths.sh                  # scan staged changes (default)
+#   ./scripts/scan-personal-paths.sh                  # scan staged changes (default — fast, forward-flow only)
 #   ./scripts/scan-personal-paths.sh --diff <ref>     # scan diff vs a ref (e.g., origin/main)
-#   ./scripts/scan-personal-paths.sh --all            # scan entire working tree (slow)
+#   ./scripts/scan-personal-paths.sh --all            # scan entire working tree (slow — historical sweep)
+#
+# IMPORTANT — diff-mode blind spot:
+#
+#   Both --staged (default) and --diff scan ONLY added lines in the diff.
+#   Personal info already on `main` and untouched by your current change
+#   passes through silently. The check fires only when YOUR edit's added
+#   lines contain the pattern.
+#
+#   Concrete past incident (2026-04-26): a Turkish-content cleanup PR was
+#   accepted by --staged because the personal-name references on lines 39
+#   and 68-78 of an older file were not in the diff. They had been on
+#   `main` for weeks. Only --all (or a one-off `--diff <much-older-ref>`)
+#   would have surfaced them.
+#
+#   When auditing a repo for accumulated leaks (rather than just gating
+#   the next push), use --all explicitly. The default scan is for
+#   FORWARD-FLOW protection, not historical sweep.
 #
 # Discovered via 2026-04-25 session: a workspace skill leaked the maintainer's
 # absolute home path (/Users/<name>/projects/...) into a public repo PR. CI didn't
@@ -39,7 +56,7 @@ while [[ $# -gt 0 ]]; do
     --diff)   MODE="diff"; DIFF_REF="${2:-}"; shift 2 ;;
     --all)    MODE="all"; shift ;;
     -h|--help)
-      sed -n '2,30p' "$0"
+      sed -n '2,46p' "$0"
       exit 0
       ;;
     *) echo "Unknown arg: $1 (try --help)" >&2; exit 2 ;;

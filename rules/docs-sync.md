@@ -37,14 +37,14 @@ If you genuinely cannot finish Phase 1 — the change is pending user review, th
 
 ```
 <!-- learning
-topic: setup-hooks-sessionend
+topic: install-refresh-flag
 kind: discovery
 doc-impact: docs
-body: atl setup-hooks now registers SessionEnd and PreCompact hooks (not just SessionStart + UserPromptSubmit). Update cli/setup-hooks doc page + README.
+body: atl v1.0.0+ install is idempotent first-time-only by default; the new --refresh flag explicitly overwrites unmodified copies. Update cli/install doc page + README to call out both the default and the flag.
 -->
 ```
 
-At session end, `atl learning-capture` aggregates markers by `doc-impact` and prepares draft changes. **Drafts are presented for review — they are never auto-pushed to public repos.**
+The next session's SessionStart hook will surface the marker via `atl learning-capture --previous-transcripts`; you (or whoever opens the next session) decide which docs to update. **Drafts are presented for review — they are never auto-pushed to public repos.**
 
 ## Bilingual / multi-locale docs
 
@@ -79,7 +79,7 @@ An explicit `doc-impact: none` creates an audit trail showing the decision was m
 
 docs-sync is a **specialization** of the [learning-capture](learning-capture.md) protocol. Every change that qualifies here also qualifies as a learning and carries a `doc-impact` value. The two rules cooperate:
 
-- **learning-capture** — general knowledge preservation (wiki, memory)
+- **learning-capture** — general knowledge preservation (journal, wiki)
 - **docs-sync** — external-facing documentation discipline
 
 Together they give the user one guarantee: nothing that changes the public surface of a project goes undocumented, and nothing the team learns goes unremembered.

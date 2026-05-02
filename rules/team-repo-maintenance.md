@@ -26,7 +26,7 @@ Why this timing:
 
 The multi-repo caveat: `/save-learnings` often produces outputs that span repos (e.g., a learning about the design-system-team session might also update a wiki page in workspace, or add a rule to core). Only the outputs touching the **current PR's repo** ride along; other-repo outputs still need their own PR flow.
 
-This rule is paired with the inline `<!-- learning -->` marker + `SessionEnd` hook (see [learning-capture](learning-capture.md)). The PR-time `/save-learnings` captures crystallized learnings from work that's about to ship; the session-end hook catches learnings that emerge AFTER the PR (review feedback, conflict-resolution insights). They are complementary, not redundant — keep both.
+This rule is paired with the inline `<!-- learning -->` marker + `SessionStart` hook (see [learning-capture](learning-capture.md)). The PR-time `/save-learnings` captures crystallized learnings from work that's about to ship; the SessionStart hook on the *next* session catches markers from work that already shipped (review feedback, conflict-resolution insights, or post-merge discoveries). They are complementary, not redundant — keep both.
 
 ### 1. Bump `team.json` version (or `internal/config.Version` for the CLI)
 
@@ -123,7 +123,7 @@ Scope is the sub-module being changed (agent name, skill name, CLI command, repo
 When a fix to a shared repo was found while working on a different project, **always** surface that context:
 
 ```
-Discovered while scaffolding a design system for WalkingForMe.
+Discovered while scaffolding a design system for a downstream project.
 The bug is not project-specific; every project running /dst-new-ds
 hits the same wall.
 ```

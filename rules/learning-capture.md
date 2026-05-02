@@ -81,8 +81,8 @@ You read the report; invoke /save-learnings --from-markers --transcripts <paths>
    • updates agent children/<topic>.md (with knowledge-base-summary frontmatter)
    • rebuilds agent.md Knowledge Base section from children frontmatter
    • updates skill learnings/<topic>.md (same frontmatter pattern)
-   • rebuilds SKILL.md Accumulated Learnings section from frontmatter
-   • for new skill / rule / agent / agent identity / SKILL.md core changes:
+   • rebuilds skill.md Accumulated Learnings section from frontmatter
+   • for new skill / rule / agent / agent identity / skill.md core changes:
        AskUserQuestion (ONE multi-select prompt per run)
    • writes ~/.claude/state/learning-capture-state.json (closes the loop)
    • pushes team-repo writes (auto for maintainers, graceful fail for users)
@@ -93,7 +93,7 @@ Markers are now persisted. Next session start, the same markers won't re-report.
 This loop is end-to-end automatic except for **two human touch points**:
 
 1. **You** invoke `/save-learnings --from-markers --transcripts ...` after seeing the additionalContext recommendation. Per Mesut's design, that's a single command call — no manual marker-by-marker review.
-2. **The user** answers the AskUserQuestion gate when new structures (skill / rule / agent / identity / SKILL.md core change) are proposed. One multi-select prompt per run.
+2. **The user** answers the AskUserQuestion gate when new structures (skill / rule / agent / identity / skill.md core change) are proposed. One multi-select prompt per run.
 
 Everything else (journal, wiki, children, learnings, KB rebuilds, state advance) happens silently.
 
