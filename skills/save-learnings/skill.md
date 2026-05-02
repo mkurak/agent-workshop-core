@@ -1,218 +1,359 @@
 ---
 name: save-learnings
-description: "Save learnings at the end of a conversation. Automatically writes to project memory, wiki (mandatory), team repo, and journal. Can auto-create new skills, agent children files, and rules when patterns are discovered. Supports --from-markers mode for hook-driven invocation. No confirmation needed — acts autonomously."
-argument-hint: "[agent-name] [--from-markers]"
+description: "Persist conversation learnings to journal + wiki + agent children + skill learnings, with auto-rebuild of agent.md / SKILL.md Knowledge Base sections from frontmatter. Multi-transcript input via --transcripts. Updates the learning-capture state file at completion (closes the auto-trigger loop). AskUserQuestion gates only for new structure creation: new agent, new skill, new rule, agent identity change, skill core change. Everything else is automatic."
+argument-hint: "[agent-name] | --from-markers [--transcripts a.jsonl,b.jsonl,...]"
 ---
 
 # /save-learnings Skill
 
 ## Purpose
 
-Called at the end of each conversation (manually, or automatically by the `atl learning-capture` hook when inline `<!-- learning -->` markers are present). Persists everything learned — patterns, anti-patterns, discoveries, process improvements. Also **auto-creates new skills, children files, and rules** when repeating patterns are detected. No user confirmation needed — acts autonomously and reports what was done.
+Persist what was learned in this conversation (or in the marker-tagged regions of multiple transcripts), then update the state file so the same markers don't re-process on the next session. This skill is the **processing half** of the auto-trigger loop: `atl session-start` hook scans transcripts → reports unprocessed markers → Claude invokes this skill → markers land in journal/wiki/agent-children/skill-learnings → state file marks them as processed.
 
-## Two invocation modes
+This skill writes a lot. Most writes are automatic — the user doesn't see prompts. The exceptions, where `AskUserQuestion` IS used:
 
-**Manual mode (user-initiated):** `/save-learnings [agent-name]` — full transcript is analyzed for learnings, every category scanned.
+1. **New skill creation** (when a workflow pattern repeated 2+ times)
+2. **New rule creation** (when an "always do X" / "never do Y" convention crystallizes)
+3. **New agent creation** (when a domain area is unmistakably a separate agent)
+4. **Existing agent identity change** (when responsibility/principles need to shift — Q2 C-layer of self-updating-learning-loop)
+5. **Existing skill core change** (when a skill's steps need to change — Q3 C-layer)
 
-**Marker mode (hook-initiated):** `/save-learnings --from-markers` — only the content inside `<!-- learning ... -->` blocks in the transcript is processed. This is cheaper (less context to re-analyze) and is the default path when `atl setup-hooks` drives end-of-session capture. See [learning-capture rule](../../rules/learning-capture.md) for the marker format.
+Everything else (journal entries, wiki updates, agent children, skill learnings, KB section auto-rebuilds) happens silently. The user reads the final summary; they don't approve each write.
 
-In marker mode, skip steps 1-2 (agent detection + analysis) and jump straight to categorizing the marker bodies.
+## Three invocation modes
+
+| Mode | Invocation | When |
+|---|---|---|
+| **Hook mode (auto-trigger)** | `/save-learnings --from-markers --transcripts a.jsonl,b.jsonl,c.jsonl` | `atl session-start` reports markers → Claude calls this on next turn |
+| **Single-transcript mode** | `/save-learnings --from-markers` | Legacy: scans the current session's own transcript only |
+| **Manual mode** | `/save-learnings [agent-name]` | User explicit: analyzes the live conversation (no markers required) |
+
+In hook mode, the transcript paths are given. In single-transcript mode, the current session's transcript path is resolved from Claude Code context. In manual mode, no transcripts are read — the analysis runs against the conversation in memory.
 
 ## Flow
 
-### 1. Identify the Active Agent
-
-If an agent name is given as an argument, use it. If not, infer from context which agent was working in this conversation (which files were edited, which directories were touched).
-
-### 2. Analyze the Conversation
-
-Scan for learnings in these categories:
-
-- **Patterns that worked** — "We did it this way and it worked well"
-- **Patterns that didn't work** — "We tried this but it caused problems"
-- **Emerging patterns** — "Not certain yet but there's this tendency"
-- **Process improvements** — "This step was missing / unnecessary in the agent's workflow"
-- **New rules** — "From now on we should always / never do this"
-- **Repeating workflows** — "We did this same sequence of steps again" → **auto-create skill or children**
-- **New conventions** — "We established a naming/structure convention" → **auto-create rule**
-
-### 3. Auto-Save (No Confirmation)
-
-**Do NOT ask for confirmation.** Analyze, decide, save, report. The user should see a summary of what was done, not be asked what to do.
-
-Decision logic for each learning:
-
-| Learning Type | Where It Goes | Auto-Create |
-|--------------|---------------|-------------|
-| Project-specific pattern | `.claude/agent-memory/{agent}-memory.md` | — |
-| General pattern (all projects) | Team repo agent/children file | — |
-| Repeating workflow (done 2+ times) | Team repo | ✅ New children file |
-| New convention/standard | Team repo or project rules | ✅ New rule (via /rule) |
-| Reusable procedure | Project `.claude/skills/` | ✅ New skill |
-| Bug fix / known issue | Team repo `known-issues.md` | ✅ Append to known-issues |
-
-### 4. Write to Project Memory
-
-File: `.claude/agent-memory/{agent-name}-memory.md`
-
-Create if it doesn't exist. Append with date heading:
-
-```markdown
-## {Date}
-
-### What Worked
-- {learning} — Evidence: {what happened}
-
-### What Didn't Work
-- {learning} — Evidence: {what happened}
-
-### Emerging Patterns
-- {observation} — Not yet verified
-```
-
-### 5. Write to Team Repo (General Learnings)
-
-The agent file is edited via symlink — updates `~/.claude/repos/agentteamland/{team}/agents/{agent}/...`.
-
-Types of updates:
-- **Existing children file** → append the new learning to the relevant section
-- **New children file** → create if the topic doesn't fit any existing children (e.g., a completely new pattern area)
-- **Known issues** → append to `children/known-issues.md`
-- **Agent.md knowledge base** → add summary + link if new children file was created
-
-### 6. Auto-Create New Artifacts
-
-#### Auto-Create Children File
-When a new topic area emerges that doesn't fit existing children:
-
-```bash
-# Create new children file in team repo
-echo "{content}" > ~/.claude/repos/agentteamland/{team}/agents/{agent}/children/{topic}.md
-```
-
-Update agent.md's Knowledge Base section with summary + detail link.
-
-#### Auto-Create Rule
-When a convention or standard is established, invoke the `/rule` skill internally:
+### 0. Parse invocation
 
 ```
-/rule --team {the convention in natural language}
+if --from-markers and --transcripts:
+    transcripts = parse comma-separated list
+    mode = "hook"
+elif --from-markers:
+    transcripts = [current session transcript]
+    mode = "single"
+else:
+    transcripts = []
+    mode = "manual"
+    agent_name = argument or inferred from edited files
 ```
 
-This writes a structured rule to the team repo (or project rules if project-specific).
+### 1. Identify the active agent (manual mode only)
 
-#### Auto-Create Skill
-When a repeating workflow is identified (same sequence of steps done 2+ times), create a skill:
+If a name was given as argument, use it. If not, infer from which agent files / agent-domain code were edited in this conversation. Pick the agent whose domain is closest to the work done.
 
-```
-.claude/skills/{skill-name}/skill.md
-```
+In hook + single modes, agent identification happens per-marker (each marker may belong to a different agent).
 
-With frontmatter (name, description) and the step-by-step workflow captured from the conversation.
+### 2. Collect learnings
 
-### 7. Update Project Wiki — MANDATORY
+**In manual mode**: scan the conversation for learnings across these categories:
+- **Patterns that worked / didn't work**
+- **Emerging patterns** (not yet certain)
+- **Process improvements**
+- **Repeating workflows** (2+ times in this session — candidate for new skill)
+- **New conventions** (always/never — candidate for new rule)
+- **Bug fixes** (with root cause + fix path)
+- **Discoveries** (non-obvious facts about systems / libraries / behavior)
 
-For **every** learning processed, determine its topic and update the relevant wiki page. This step is not optional — the wiki is how Claude (and the user) sees current truth in future sessions, and skipping it loses the benefit.
+**In hook + single modes**: extract every `<!-- learning -->` block from the listed transcripts. Each block already has `topic`, `kind`, `doc-impact`, `body`. Use those fields directly; don't re-classify.
 
-```
-Learning: "Redis TTL should be 30 min not 15"
-  → Topic: redis-cache
-  → Wiki page: .claude/wiki/redis-cache.md
-  → Action: UPDATE (replace "15 min" with "30 min" if it exists, or add new entry)
-```
+**Deduplication**: hash each learning by (topic + body). If the same hash already appears in `.claude/journal/` for the same agent + same calendar date, skip it (the marker was double-emitted, or this is a re-run after a prior partial save).
 
-- If `.claude/wiki/` exists → update relevant pages, create new pages for topics that don't have one yet
-- If `.claude/wiki/` doesn't exist → run `/wiki init` first (creates scaffold), then proceed
-- Update `index.md` with any new pages
-- Update cross-references between related pages
-- Wiki pages reflect **current truth** — if a fact changed, old info is replaced, not appended (see [wiki skill](../wiki/skill.md) for page format and rules)
+### 3. Decide destination layers per learning
 
-### 8. Sync Docs (for doc-impact markers)
-
-When processing in marker mode, scan each marker's `doc-impact` field:
-
-| `doc-impact` value | Action |
+| Learning shape | Destination |
 |---|---|
-| `none` (or missing) | Skip — no doc work needed |
-| `readme` | Prepare a draft `README.md` update in the affected repo(s) |
-| `docs` | Prepare a draft update to the doc site (e.g., `repos/docs/site/...`) including bilingual mirrors if present |
-| `both` | Prepare drafts for both README and doc site |
-| `breaking` | Prepare drafts for README, doc site, AND a `CHANGELOG.md` / migration-note entry |
+| Time-stamped narrative ("we tried X, then Y, then Z worked") | Journal entry only |
+| Topic-shaped current truth ("the right way to do auth is …") | Wiki page (replace if exists) + journal entry |
+| Domain knowledge for a specific agent ("api-agent: prefer prepared statements") | Agent's `children/{topic}.md` (Q2 A-layer) + journal entry |
+| Domain knowledge for a specific skill ("save-learnings: skip duplicates by hash") | Skill's `learnings/{topic}.md` (Q3 A-layer) + journal entry |
+| Repeating workflow (across this session OR cross-session per memory check) | **AskUserQuestion → new skill** |
+| Convention crystallized ("never auto-merge", "always use prepared statements") | **AskUserQuestion → new rule** via `/rule` |
+| Domain area without an owning agent | **AskUserQuestion → new agent** |
+| Existing agent's identity expanded (e.g. api-agent now also covers caching) | **AskUserQuestion → agent.md core update** (Q2 C-layer) |
+| Existing skill's core flow needs change | **AskUserQuestion → SKILL.md core update** (Q3 C-layer) |
 
-Drafts are **not auto-pushed to public repos**. They are either:
+The first four rows happen silently. The last five rows go through `AskUserQuestion` per Mesut's #2 requirement: "Yeni bir agent veya skill gerektiriyorsa yada yenilerini oluşturmak gerekiyorsa, bu yapılabilsin. Bu gibi şeylerde kullanıcıya bilgi verilerek onay istenebilir."
 
-- Applied locally in the workspace so the user can review the diff before committing
-- Or, if the workspace is read-only in this context, surfaced as a bulleted "proposed changes" list in the final report
+### 4. Write journal (Q4 — single layer for time-based content)
 
-See [docs-sync rule](../../rules/docs-sync.md) for what qualifies as user-facing and how bilingual mirrors are handled.
+File: `.claude/journal/{YYYY-MM-DD}_{agent-name}.md`
 
-If in manual mode (no markers), skip this step — manual `/save-learnings` focuses on knowledge capture; docs updates happen in the turn the change is made (Phase 1 of docs-sync).
-
-### 9. Write to Journal
-
-File: `.claude/journal/{date}_{agent-name}.md`
+If the file exists for this date+agent, append. If it doesn't, create it with YAML frontmatter:
 
 ```markdown
 ---
-date: {date}
-agent: {agent-name}
-tags: [learning, {categories}]
+date: 2026-05-02
+agent: <agent-name>
+tags: [learning, <kind1>, <kind2>, ...]
 ---
 
 ## Summary
-{What was done in this conversation}
+
+<one-paragraph what was done in this conversation / batch of transcripts>
 
 ## Learnings
-- {learning list}
+
+- <short bullet per learning, with topic + kind + body>
+- ...
 
 ## Auto-Created
-- {list of new files/skills/rules created, if any}
+
+- <list of any new files created — children/learnings/wiki pages>
+- ...
+
+## User-Approved Structural Changes
+
+- <list of new skills / rules / agents / identity changes that AskUserQuestion approved>
+  (or "(none)" when no structural changes were proposed in this run)
 
 ## Notes for Other Agents
-- {cross-cutting information if any}
+
+- <cross-cutting notes, when applicable>
 ```
 
-### 10. Push Team Repo
+**Idempotency**: before writing each bullet, hash (kind + topic + body) and check if that hash already appears in any `.claude/journal/{date}_*.md` for the same date. Skip duplicates.
 
-If any team repo files were modified (children, rules, agent.md, known-issues) — after wiki, docs-sync, and journal all wrote their outputs:
+> **Note on the 3-layer → 2-layer transition (Q4 of self-updating-learning-loop)**: previous versions of this skill wrote to both `.claude/agent-memory/{agent}-memory.md` AND `.claude/journal/{date}_{agent}.md`. After the v1.1.0 ship, agent-memory has been merged into journal; only journal/ is written. Existing agent-memory files in workspaces will be migrated by Phase 2.B's workspace-migration PR.
+
+### 5. Update wiki
+
+For each learning whose shape is "topic-shaped current truth":
+
+1. Determine wiki page slug from the learning's topic (kebab-case)
+2. If `.claude/wiki/{slug}.md` exists → update (REPLACE outdated section, don't append)
+3. If it doesn't → create with the standard wiki page format (Last updated, Current truth section, Related section)
+4. Add a one-line entry to `.claude/wiki/index.md` if not already there
+
+Wiki pages reflect **current truth** — when a fact changes, old fact is replaced. Don't pile up dated sections (that's what journal is for).
+
+### 6. Rebuild CLAUDE.md wiki:index marker block
+
+After any wiki page write/update/delete, regenerate the `<!-- wiki:index:start ... wiki:index:end -->` block at the top of CLAUDE.md (after the H1 + intro, near other marker blocks). Block contents:
+
+```markdown
+<!-- wiki:index:start -->
+## 📚 Knowledge map
+
+Knowledge lives in `.claude/wiki/` (current truth, topic-organized) and `.claude/journal/` (historical record, date-based).
+
+**Wiki topics:**
+- [topic-1](.claude/wiki/topic-1.md) — one-line summary
+- [topic-2](.claude/wiki/topic-2.md) — one-line summary
+- ...
+
+**Discipline:** Before working on a topic, scan this list. If a topic looks relevant, read the page.
+<!-- wiki:index:end -->
+```
+
+The summaries come from the first non-frontmatter, non-heading line of each wiki page (or from `index.md`'s existing one-liner if newer is unavailable). Sort topics by filename for determinism.
+
+If the block doesn't exist yet (first run), insert it after the existing H1 + intro paragraph, before the first H2.
+
+### 7. Update agent's children/ (Q2 A-layer — automatic)
+
+For each learning destined for `children/{topic}.md`:
+
+1. Resolve the agent's repo path: `~/.claude/repos/agentteamland/{team}/agents/{agent}/`
+2. If `children/{topic}.md` exists → update (typically: append a new bullet under an existing section, or add a new section)
+3. If not → create with YAML frontmatter:
+
+```markdown
+---
+knowledge-base-summary: "<one-line summary of what this topic covers — used by agent.md KB section auto-rebuild>"
+---
+
+# <Topic Title>
+
+<body>
+```
+
+The `knowledge-base-summary` frontmatter field is what step 8 reads to rebuild the agent.md Knowledge Base section. **Always write this field on file creation**; if updating an existing children file, leave the summary intact unless the topic's scope materially changed.
+
+### 8. Rebuild agent.md Knowledge Base section (Q2 B-layer — automatic)
+
+If any `children/*.md` was created or had its `knowledge-base-summary` updated in step 7, regenerate the **Knowledge Base** section in the agent's `agent.md`:
+
+1. List every `children/*.md` file
+2. Read each frontmatter `knowledge-base-summary`
+3. Sort by filename
+4. Replace the existing `## Knowledge Base` section content with:
+
+```markdown
+## Knowledge Base
+
+### <Topic 1 (heading-cased from filename)>
+<knowledge-base-summary>
+→ [Details](children/topic-1.md)
+
+### <Topic 2>
+<knowledge-base-summary>
+→ [Details](children/topic-2.md)
+
+...
+```
+
+This section is fully derived from frontmatter. Hand-edits to it are overwritten on the next save-learnings run; the source of truth is each child file's frontmatter.
+
+The `## Knowledge Base` heading itself, the agent's identity / responsibility / principles sections, and everything else in agent.md are **NOT touched** by this skill in automatic mode.
+
+### 9. Update skill's learnings/ (Q3 A-layer — automatic, mirrors step 7)
+
+For each learning destined for a specific skill:
+
+1. Resolve the skill path: `~/.claude/repos/agentteamland/{team-or-core}/skills/{skill}/`
+2. Ensure `learnings/` subdirectory exists (create if first learning for this skill)
+3. Create or update `learnings/{topic}.md` with the same `knowledge-base-summary:` frontmatter pattern as children/
+
+### 10. Rebuild SKILL.md Accumulated Learnings section (Q3 B-layer — automatic, mirrors step 8)
+
+If any `learnings/*.md` was created/updated in step 9, regenerate the `## Accumulated Learnings` section in the skill's `SKILL.md`:
+
+```markdown
+## Accumulated Learnings
+
+(Auto-rebuilt by /save-learnings from learnings/*.md frontmatter. Do not edit by hand.)
+
+### <Topic 1>
+<knowledge-base-summary>
+→ [Details](learnings/topic-1.md)
+
+### <Topic 2>
+<knowledge-base-summary>
+→ [Details](learnings/topic-2.md)
+
+...
+```
+
+If `## Accumulated Learnings` doesn't exist yet, append it at the end of SKILL.md (after the existing content). Subsequent rebuilds replace the section in place.
+
+### 11. AskUserQuestion gates (Q2 C-layer + Q3 C-layer + new structure)
+
+For each learning whose destination from step 3 is one of the gated rows, prepare a single AskUserQuestion with multiple-choice options. Batch all gated learnings into ONE question per skill run when possible (don't ask 5 separate questions in 5 separate prompts).
+
+Question format example:
+
+```
+Three structural changes are proposed by this batch of learnings. Approve which?
+
+[1] New skill: /repo-status
+    Reason: pattern "check repo state across all peer repos" appeared 3 times
+    Files: .claude/skills/repo-status/skill.md (new, ~100 lines)
+
+[2] Update agent identity: api-agent
+    Reason: domain expanded to include caching strategy
+    Diff: agent.md "Responsibility" section adds a caching paragraph
+    
+[3] Update SKILL.md core: /create-pr
+    Reason: review chain now needs a CI-pre-merge poll loop
+    Diff: skill.md step 6 adds a `until COMPLETED && SUCCESS` poll
+
+Approve which? (multi-select)
+[ ] (1) Create skill /repo-status
+[ ] (2) Update api-agent identity
+[ ] (3) Update /create-pr SKILL.md
+[ ] All
+[ ] None (skip all structural changes; everything else still saves)
+```
+
+For each approved item, apply the change. For each rejected item, log the rejection to journal under "## User-Approved Structural Changes" with reason "rejected".
+
+When AskUserQuestion isn't applicable (e.g., running non-interactively in a hook context where no user is present), default to "skip all" and log every gated proposal as "deferred — surfaced next interactive session". The state file write in step 12 still proceeds for the non-gated learnings.
+
+### 12. Write state file (closes the auto-trigger loop)
+
+After all writes from steps 4-11 complete (success or partial-success), update `~/.claude/state/learning-capture-state.json`:
+
+```bash
+# Pseudocode — actual implementation uses Read + Edit tools to manipulate JSON
+state_file = ~/.claude/state/learning-capture-state.json
+project_slug = current project's Claude Code session slug (replace / with - in cwd path)
+latest_modtime = max(modtime of each transcript in --transcripts list)
+
+state = read state_file (or empty if missing)
+state.projects[project_slug].lastProcessedAt = latest_modtime
+write state atomically (tmp file + rename)
+```
+
+This is what tells the next `atl learning-capture --previous-transcripts` run that these markers are processed — they won't be re-reported on the next SessionStart hook fire.
+
+**Atomicity**: write to a temp file first, then `mv` over the real path. If anything in steps 4-11 silently failed, that's still better than re-processing every marker forever; the next save-learnings invocation can re-derive what's missing from the journal/wiki/etc. (those are append-only or replace-with-frontmatter, both idempotent).
+
+**On total failure** (e.g., disk full, all writes failed): do NOT update state file. Next session re-reports — losing nothing.
+
+### 13. Push team repo (if any team-repo files were modified)
+
+For each team repo whose files (children/, learnings/, agent.md, SKILL.md, known-issues.md, etc.) were modified by this run:
 
 ```bash
 cd ~/.claude/repos/agentteamland/{team-name}
 git add -A
-git commit -m "learn: {short summary of all learnings}"
+git commit -m "learn: <one-line summary of the batch>"
 git push
 ```
 
-**Project-local changes** (`.claude/wiki/`, `.claude/agent-memory/`, `.claude/journal/`) are committed in the project repo if one exists, but pushing them is the project's responsibility, not this skill's.
+This pushes to the **user's local clone** of the team repo. The clone's origin is the public `agentteamland/{team}` repo, so users without push permission will see a permission-denied error here. That's expected — they keep their changes locally; the upstream contribution flow (separate brainstorm: `upstream-contribution-stream`) is what eventually packages them as a PR.
 
-**Doc-impact drafts** prepared in step 8 are **never auto-committed to public repos** — they wait for review.
+For maintainers (mkurak), this push lands directly on `origin/main` because they have direct push access. **This is the documented exception to the team-repo-maintenance rule**: maintainer's local save-learnings can push because the maintainer's intent is "I'm at the source." Public users see the permission error and stay local-only.
 
-### 11. Report to User
-
-Show a brief summary of everything that was done:
+### 14. Report to user
 
 ```
-📝 Learnings saved:
-  • Markers processed: 3 (2 decision, 1 bug-fix)
-  • Project memory: 3 entries added
-  • Wiki: 2 pages updated (redis-cache.md, auth.md)
-  • Wiki: 1 new page created (rate-limiting.md)
-  • Team repo: 1 children file updated (caching-strategy.md)
-  • New rule created: "batch-imports-use-bulk-insert" (team)
-  • Journal entry written
-  • Docs drafts: 1 README draft in core/ awaiting review
-  • Team repo pushed (v1.3.1)
+📝 Learnings saved (mode: hook | single | manual)
+
+  Markers processed: <N> across <M> transcripts
+  Journal: 1 entry (.claude/journal/2026-05-02_<agent>.md)
+  Wiki: <X> pages updated, <Y> new pages, <Z> wiki:index marker rebuilt
+  Agent children: <A> updated across <B> agents (KB sections auto-rebuilt)
+  Skill learnings: <C> updated across <D> skills (Accumulated Learnings auto-rebuilt)
+
+  Structural changes:
+    Approved by user:
+      • <list, or "(none)">
+    Rejected:
+      • <list, or "(none)">
+
+  State file updated: <slug> last-processed-at = <timestamp>
+  Team repos pushed: <list, or "(none — no team-repo writes)">
 ```
 
-One block, no interaction, conversation continues (or ends).
+Keep the report concise. Detail belongs in journal; this report is just the "did the loop close?" summary.
 
-## Important Rules
+## Important rules
 
-1. **NO confirmation asked.** Analyze → save → report. User sees the result, not a question.
-2. **Auto-create is safe.** New children files, rules, and skills don't break anything — they add knowledge.
-3. **Git push is automatic.** Team repo changes are committed and pushed immediately.
-4. **Sensitive information filter.** Passwords, tokens, secrets, API keys are NEVER written anywhere.
-5. **Append for memory/journal, replace for wiki.** Memory and journal are historical (append-only). Wiki is current truth (old facts get replaced). Doc drafts (step 8) are never auto-committed to public repos.
-6. **De-duplicate.** Check if a similar learning already exists before adding. Don't create duplicate children or rules.
-7. **Skill creation threshold.** Only create a skill when the same workflow pattern appears 2+ times. One-time procedures go to memory, not skills.
-8. **Rule creation criteria.** Only create a rule when a clear "always do X" or "never do Y" convention is established. Observations go to memory, conventions go to rules.
+1. **No confirmation for non-structural writes.** Memory/journal/wiki/agent-children/skill-learnings all happen silently. The user sees the result, not a question per write.
+
+2. **AskUserQuestion ONLY for new structures or identity changes.** New skill, new rule, new agent, agent.md identity update, SKILL.md core update. These are gated per Mesut's #2 requirement.
+
+3. **State file write is the closing bracket.** Until the state file updates, the markers remain "unprocessed" and will re-report on next SessionStart. This is the safety net against partial-write data loss.
+
+4. **Sensitive information filter.** Passwords, tokens, API keys, secrets are NEVER written to journal/wiki/team repos. If a marker body contains what looks like a credential, redact and write the redacted form.
+
+5. **Idempotent everywhere.** Re-running this skill on the same markers should produce no incremental change to journal (dedup by hash), no change to wiki (replace-with-same is a no-op), and no change to agent KB sections (full rebuild from frontmatter is deterministic). The state-file timestamp may advance slightly between runs; that's fine.
+
+6. **Team repo push is automatic for maintainers, fails gracefully for users.** Don't try to PR-instead-of-push when the push fails — that's the upstream-contribution-stream brainstorm's job. Just log the failure to journal and move on.
+
+7. **Onay-gate batching.** When multiple structural changes appear in one batch of markers, ask one AskUserQuestion with multi-select, not N separate prompts. Mesut's #3 ("manual operation must not be required") still allows the gates from #2, but should keep the friction at one decision point per save-learnings run.
+
+8. **Skill creation threshold = 2 instances.** Don't auto-propose a new skill on a single workflow occurrence. Either the same workflow appears 2+ times in this batch of markers, OR it appears once in the markers AND once in journal history (cross-session pattern detection).
+
+9. **Rule creation criteria = unambiguous "always X" / "never Y" wording in the marker body.** Hedged language ("we should probably do X") goes to wiki, not rule.
+
+## Phase 2.B context
+
+This skill rewrite is part of self-updating-learning-loop Phase 2.B. The full implementation surface:
+
+- **PR 2B.1 (this PR)**: skill.md rewrite with Q2/Q3 layered model, multi-transcript input, state-file write, AskUserQuestion gates
+- **PR 2B.2** (next): workspace migration — `.claude/agent-memory/*.md` → `.claude/journal/`, agent children frontmatter, skill learnings/ creation, agent core principle wiki-discipline line
+- **PR 2B.3**: rule rewrites in core — `learning-capture.md` (SessionStart-driven), `memory-system.md` → `knowledge-system.md` (2-layer), `agent-structure.md` extension (skills covered too)
+
+After Phase 2.B + 2.C (per-team migrations) ship, the auto-trigger loop is end-to-end functional: SessionStart hook scans → Claude sees marker report in additionalContext → invokes this skill → markers persist + state advances → next session sees fresh markers only.
