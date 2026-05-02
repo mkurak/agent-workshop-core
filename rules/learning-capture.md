@@ -2,7 +2,17 @@
 
 ## Who runs this
 
-**You (the agent) drop markers inline as you speak.** The Claude Code harness runs `atl learning-capture` at session end (and on `PreCompact`) and processes whatever markers the scan finds — you do not call a separate tool for each learning.
+**You (the agent) drop markers inline as you speak.** The Claude Code harness auto-runs `atl session-start` at the start of every new session — and that wrapper, on its third internal step, scans the **previous** session's transcript files for `<!-- learning -->` markers via `atl learning-capture --previous-transcripts`. The output appears in your additionalContext on the first turn of the new session, naming a recommended invocation:
+
+```
+🧠 learning-capture: 7 unprocessed markers across 2 transcripts
+  by kind: 3 decision, 2 pattern, 1 discovery, 1 bug-fix
+  3 markers require doc drafts (README / doc site) — see docs-sync rule
+
+→ Run: /save-learnings --from-markers --transcripts <path1>,<path2>
+```
+
+Follow that recommendation. Run `/save-learnings --from-markers --transcripts ...` on the first turn (or as soon as the conversation allows). The skill writes journal + wiki + agent children + skill learnings, advances the state file's `lastProcessedAt`, and the same markers will not re-report on the next session start.
 
 Markers are the "save it if you see it" mechanism. They are cheap to drop (~40 tokens) and free to ignore when nothing interesting happened.
 
@@ -41,22 +51,51 @@ body: 7-day JWT refresh chosen because we want long sessions; user logs in once 
 
 Multiple markers per response are fine when multiple learnings happen. Do NOT bundle unrelated learnings into one marker — each topic deserves its own.
 
-## What happens after
-
-When the session ends (or `PreCompact` fires), `atl learning-capture` scans the transcript:
-
-- **0 markers** → silent exit. Zero tokens, zero cost. The common case.
-- **1+ markers with `doc-impact: none`** → `/save-learnings` runs on the marked regions only (not the whole transcript). Wiki pages update, agent-memory appends, journal gets a summary.
-- **1+ markers with `doc-impact` ≠ `none`** → in addition, draft README / doc-site changes are prepared and surfaced for review. **No auto-commit to public repos.**
-
-You (and the user) see output like this injected at session close or the next turn:
+## What happens after — the auto-trigger loop
 
 ```
-📝 learning-capture: 3 markers processed
-  • wiki: caching.md updated, auth.md updated, rate-limiting.md (new)
-  • memory: api-agent-memory.md +3 entries
-  • docs-impact: 1 README draft awaiting review (core/README.md)
+[previous session ends] no hook, no work — markers sit in the transcript
+        ↓
+[new session starts]
+        ↓
+SessionStart hook fires → atl session-start --silent-if-clean
+        ↓
+   step 3: atl learning-capture --previous-transcripts
+        → reads ~/.claude/state/learning-capture-state.json (per-project lastProcessedAt)
+        → enumerates ~/.claude/projects/{slug}/*.jsonl modified after that timestamp
+          (or last 7 days on first run for this project)
+        → scans those transcripts for <!-- learning --> blocks
+        → emits compact report to stdout
+        ↓
+Claude Code injects the stdout into additionalContext for the first model request
+        ↓
+[your turn, in the new session]
+        ↓
+You read the report; invoke /save-learnings --from-markers --transcripts <paths>
+        ↓
+/save-learnings:
+   • categorizes each marker (decision / pattern / discovery / ...)
+   • writes journal entry (.claude/journal/<date>_<agent>.md, idempotent by hash)
+   • updates wiki pages (.claude/wiki/<topic>.md, replace-style for current truth)
+   • rebuilds <!-- wiki:index --> marker block in CLAUDE.md
+   • updates agent children/<topic>.md (with knowledge-base-summary frontmatter)
+   • rebuilds agent.md Knowledge Base section from children frontmatter
+   • updates skill learnings/<topic>.md (same frontmatter pattern)
+   • rebuilds SKILL.md Accumulated Learnings section from frontmatter
+   • for new skill / rule / agent / agent identity / SKILL.md core changes:
+       AskUserQuestion (ONE multi-select prompt per run)
+   • writes ~/.claude/state/learning-capture-state.json (closes the loop)
+   • pushes team-repo writes (auto for maintainers, graceful fail for users)
+        ↓
+Markers are now persisted. Next session start, the same markers won't re-report.
 ```
+
+This loop is end-to-end automatic except for **two human touch points**:
+
+1. **You** invoke `/save-learnings --from-markers --transcripts ...` after seeing the additionalContext recommendation. Per Mesut's design, that's a single command call — no manual marker-by-marker review.
+2. **The user** answers the AskUserQuestion gate when new structures (skill / rule / agent / identity / SKILL.md core change) are proposed. One multi-select prompt per run.
+
+Everything else (journal, wiki, children, learnings, KB rebuilds, state advance) happens silently.
 
 ## Why inline markers, not a tool call?
 
@@ -71,12 +110,26 @@ A tool call per learning would double token cost and slow conversation. Inline m
 
 ## Dual with docs-sync
 
-The `doc-impact` field ties this rule to [docs-sync](docs-sync.md). If you mark `doc-impact: readme` or `docs`, docs-sync takes over at session end to prepare the actual README / doc-site changes. You don't need to update docs manually in the same turn — marking is enough, as long as you do mark.
+The `doc-impact` field ties this rule to [docs-sync](docs-sync.md). If you mark `doc-impact: readme` or `docs`, docs-sync takes over to prepare the actual README / doc-site changes. You don't need to update docs manually in the same turn — marking is enough, as long as you do mark.
 
 ## When the hook isn't installed
 
-Markers are harmless when no hook processes them — they're HTML comments, invisible in rendered output, inert as text. The capture habit is still valuable (markers are legible even to a human reader of the transcript). For automatic processing, the user runs `atl setup-hooks`.
+Markers are harmless when no hook processes them — they're HTML comments, invisible in rendered output, inert as text. The capture habit is still valuable (markers are legible even to a human reader of the transcript).
+
+For automatic processing, the user runs `atl setup-hooks`. That installs:
+- `SessionStart → atl session-start --silent-if-clean` (the wrapper that triggers learning-capture as step 3)
+- `UserPromptSubmit → atl update --silent-if-clean --throttle=30m` (cache pull throttle)
+
+Without those hooks, the user must invoke `/save-learnings` manually at session boundaries; markers still accumulate in transcripts and remain available for whenever processing happens.
 
 ## History
 
-This used to be proposed as "Claude should proactively save learnings at the end of every session" (see [memory-system.md](memory-system.md) "End of Conversation Routine"). That worked but was unreliable — whether Claude remembered depended on interpretation of prose instructions. Moving to inline markers + a harness-owned hook makes it deterministic AND cheaper: we only process what was explicitly flagged, instead of re-analyzing the whole transcript.
+This rule has gone through three shapes:
+
+1. **Original (pre-`atl` versions):** "Claude should proactively save learnings at the end of every session." Worked sometimes; depended on Claude remembering a prose instruction. Unreliable.
+
+2. **First atl version (v0.2.0 — `core@1.3.0`):** Inline markers + `atl learning-capture` registered on `SessionEnd` and `PreCompact` hooks. **Silently broken**: per Claude Code v2.1.x docs, those events do NOT deliver hook stdout to Claude's additionalContext. Marker reports went to debug logs and were lost. 324 markers across 9 sessions in the maintainer workspace produced zero auto-processing during the month it was in production. All actual save-learnings work in that period was triggered by manual user invocation, not hook output. See [claude-code-hook-output-events.md](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/claude-code-hook-output-events.md) in workspace.
+
+3. **Current (v1.1.0+ — `core@1.8.0`):** Hook moved to `SessionStart` via the new `atl session-start` wrapper, scanning the previous session's transcripts via the new `--previous-transcripts` mode. Output reaches additionalContext. State file (~/.claude/state/learning-capture-state.json) tracks `lastProcessedAt` per project, written by `/save-learnings` on successful completion. The loop closes deterministically.
+
+The current shape was decided in the [self-updating-learning-loop](https://github.com/agentteamland/workspace/blob/main/.claude/docs/self-updating-learning-loop.md) brainstorm (workspace, 2026-05-02) and shipped via Phase 2.A (cli v1.1.0) + Phase 2.B (this rule + the save-learnings skill rewrite).

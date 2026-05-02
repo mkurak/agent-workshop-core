@@ -205,7 +205,7 @@ Without markers (or without hooks), manual `/wiki ingest` and manual `/save-lear
 
 ### Agent Startup → Wiki
 
-Agents read relevant wiki pages at session start (per memory-system rule). Agent doesn't read ALL pages — only those related to its domain:
+Agents read relevant wiki pages at session start (per knowledge-system rule). Agent doesn't read ALL pages — only those related to its domain:
 - API Agent → pages about api patterns, database, auth, caching
 - Flutter Agent → pages about ui patterns, state management, navigation
 - Selection is based on page topics matching agent's responsibility area
