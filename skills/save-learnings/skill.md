@@ -269,26 +269,26 @@ For each approved item, apply the change. For each rejected item, log the reject
 
 When AskUserQuestion isn't applicable (e.g., running non-interactively in a hook context where no user is present), default to "skip all" and log every gated proposal as "deferred — surfaced next interactive session". The state file write in step 12 still proceeds for the non-gated learnings.
 
-### 12. Write state file (closes the auto-trigger loop)
+### 12. Commit processed-marker hashes to state (closes the auto-trigger loop)
 
-After all writes from steps 4-11 complete (success or partial-success), update `~/.claude/state/learning-capture-state.json`:
+After all writes from steps 4-11 complete, hand state-file maintenance off to the CLI. As of `atl v1.1.3`, the binary owns both the state-file shape and the atomicity guarantees — the skill just signals "these transcripts are done":
 
 ```bash
-# Pseudocode — actual implementation uses Read + Edit tools to manipulate JSON
-state_file = ~/.claude/state/learning-capture-state.json
-project_slug = current project's Claude Code session slug (replace / with - in cwd path)
-latest_modtime = max(modtime of each transcript in --transcripts list)
-
-state = read state_file (or empty if missing)
-state.projects[project_slug].lastProcessedAt = latest_modtime
-write state atomically (tmp file + rename)
+atl learning-capture --commit-from-transcripts --transcripts <comma-separated-paths>
 ```
 
-This is what tells the next `atl learning-capture --previous-transcripts` run that these markers are processed — they won't be re-reported on the next SessionStart hook fire.
+The CLI re-scans those transcripts, hashes every marker found (canonical SHA-256 of `topic + "|" + kind + "|" + body`, truncated to 8 bytes), adds the hashes to `~/.claude/state/learning-capture-state.json` under `projects.<slug>.processedMarkers` (FIFO-capped at 5000 entries, dedup-on-insert), and advances `projects.<slug>.lastProcessedAt` to the most-recent transcript modtime. Atomic write via temp + rename.
 
-**Atomicity**: write to a temp file first, then `mv` over the real path. If anything in steps 4-11 silently failed, that's still better than re-processing every marker forever; the next save-learnings invocation can re-derive what's missing from the journal/wiki/etc. (those are append-only or replace-with-frontmatter, both idempotent).
+**Mode of invocation:** in hook + single mode, run this command after the AskUserQuestion gate (step 11) resolves. In manual mode, skip it — manual mode is not driven by the marker-state-file contract; the user invoked the skill explicitly and the next-session report doesn't apply.
 
-**On total failure** (e.g., disk full, all writes failed): do NOT update state file. Next session re-reports — losing nothing.
+**Why the CLI owns the write:**
+- Per-marker hash dedup is what fixes the long-running-session re-report bug (PR cli#15, atl v1.1.3). The skill-side approach of "stamp lastProcessedAt = max(file modtime)" is too coarse — a session that keeps appending to the same file after save-learnings finishes pushes the modtime past the timestamp, and the next SessionStart re-reports every marker the file contains.
+- The CLI knows the canonical hash function (`MarkerHash` in `internal/learnings/state.go`); duplicating it in skill prose would drift.
+- Atomic write via the same `config.WriteJSONAtomic` helper used by `.team-installs.json` keeps the corruption-on-crash protection consistent across both state files.
+
+**On total failure** (atl missing, command nonzero, disk full): the next SessionStart re-reports everything — losing nothing. The CLI fails open: it prints an error to stderr and exits 0 so /save-learnings's overall flow never aborts on state-write trouble.
+
+**Backwards compatibility:** legacy state files written by pre-v1.1.3 atl have only `lastProcessedAt`, no `processedMarkers`. The CLI parses them cleanly; the next `--commit-from-transcripts` run upgrades the file in place by adding the field. No migration step needed.
 
 ### 13. Push team repo (if any team-repo files were modified)
 
