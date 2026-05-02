@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Core infrastructure for AgentTeamLand teams \u2014 memory, journal, wiki, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy-guidelines, schemas",
   "author": {
     "name": "AgentTeamLand",
@@ -38,12 +38,12 @@
   ],
   "rules": [
     {
-      "name": "memory-system",
-      "description": "4-layer knowledge model (memory, journal, wiki, docs)"
+      "name": "knowledge-system",
+      "description": "Two-layer knowledge model (journal + wiki) + agent startup routine"
     },
     {
       "name": "agent-structure",
-      "description": "Children pattern + Knowledge Base + Blueprint pattern for agents"
+      "description": "Agent + skill structure: children/learnings patterns, Knowledge Base + Accumulated Learnings auto-rebuild from frontmatter, C-layer onay-gate"
     },
     {
       "name": "version-check",

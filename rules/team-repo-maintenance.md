@@ -267,7 +267,7 @@ There is no "too small for PR" category. The PR ceremony is cheap (30 seconds of
 
 - [learning-capture.md](learning-capture.md) — the sibling rule for inline marker protocol
 - [docs-sync.md](docs-sync.md) — the sibling rule for proactive doc updates
-- [memory-system.md](memory-system.md) — 4-layer knowledge model (where learnings get categorized as project vs. general — general → team repo, which this rule then governs how to ship)
+- [knowledge-system.md](knowledge-system.md) — 2-layer knowledge model (journal + wiki) where learnings get categorized as project vs. general — general → team repo, which this rule then governs how to ship
 
 ## History
 
