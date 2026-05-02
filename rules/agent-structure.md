@@ -26,18 +26,26 @@ Every agent is organized in the following structure:
 
 ## Learnings Pattern (skill) — Mandatory (new in core@1.8.0)
 
-Every skill mirrors the agent structure:
+Every skill mirrors the agent structure. Two locations matter:
 
 ```
+# Source-of-truth (the team / core repo, served by atl):
 ~/.claude/repos/agentteamland/{team-or-core}/skills/{skill-name}/
-├── SKILL.md              ← The skill's procedure (steps, identity, flow). Stays short.
+├── skill.md              ← The skill's procedure (steps, identity, flow). Stays short.
 └── learnings/            ← Accumulated edge cases, successful patterns, anti-patterns
     ├── topic-1.md
     ├── topic-2.md
     └── ...
+
+# Project-local copy (post-atl-v1.0.0 install topology):
+{project}/.claude/skills/{skill-name}/
+├── skill.md              ← Identical copy, refreshed by `atl update` if unmodified
+└── learnings/            ← Same pattern; auto-grown copies
 ```
 
-This mirrors `children/` for agents. Same shape, same rules, same `knowledge-base-summary` frontmatter convention. The skill's `SKILL.md` ships with an "Accumulated Learnings" section auto-aggregated from `learnings/*.md` frontmatter — same mechanism as agent.md's Knowledge Base.
+Per [install-mechanism-redesign](https://github.com/agentteamland/workspace/blob/main/.claude/docs/install-mechanism-redesign.md), `atl install` copies skills (and now agents + rules) into the project. `atl update` refreshes unmodified copies via three-way SHA-256 comparison. `/save-learnings` writes to the project-local copy first; the auto-update flow propagates changes upstream when the user is the team-repo maintainer.
+
+This mirrors `children/` for agents. Same shape, same rules, same `knowledge-base-summary` frontmatter convention. The skill's `skill.md` ships with an "Accumulated Learnings" section auto-aggregated from `learnings/*.md` frontmatter — same mechanism as agent.md's Knowledge Base.
 
 **Why mirror agents on skills?** Per Q3 of self-updating-learning-loop: the "self-improving skill" framing benefits from a structured place for accumulated wisdom that agents (Claude) can see when invoking the skill. Without `learnings/`, every skill use starts from zero on edge cases that came up in prior runs.
 
@@ -80,9 +88,9 @@ No try-catch in handlers — throw exception, global handler catches.
 → [Details](children/error-handling.md)
 ```
 
-## Accumulated Learnings Format (SKILL.md) — Mandatory (new in core@1.8.0)
+## Accumulated Learnings Format (skill.md) — Mandatory (new in core@1.8.0)
 
-Same shape as agent.md's Knowledge Base, applied to SKILL.md. Each skill's SKILL.md gets an "Accumulated Learnings" section appended (or rebuilt in place if the section exists):
+Same shape as agent.md's Knowledge Base, applied to skill.md. Each skill's skill.md gets an "Accumulated Learnings" section appended (or rebuilt in place if the section exists):
 
 ```markdown
 ## Accumulated Learnings
@@ -95,7 +103,7 @@ Catches the case where a marker was double-emitted in the transcript.
 → [Details](learnings/skip-duplicates-by-hash.md)
 
 ### When to escalate to AskUserQuestion
-Only for new skill / new rule / new agent / agent.md identity / SKILL.md core.
+Only for new skill / new rule / new agent / agent.md identity / skill.md core.
 Everything else is automatic — Mesut's #2 + #3 requirements.
 → [Details](learnings/when-to-askuser.md)
 ```
@@ -114,7 +122,7 @@ knowledge-base-summary: "<one-to-three-line summary>"
 
 ## Identity / core changes — onay-gated (C-layer of self-updating-learning-loop)
 
-The `agent.md` sections OTHER than Knowledge Base — **identity, area of responsibility, core principles** — are NOT touched by automatic save-learnings. The same goes for the `SKILL.md` core (steps, flow, identity).
+The `agent.md` sections OTHER than Knowledge Base — **identity, area of responsibility, core principles** — are NOT touched by automatic save-learnings. The same goes for the `skill.md` core (steps, flow, identity).
 
 When `/save-learnings` infers from accumulated markers that one of these sections needs to change (e.g., "api-agent's responsibility now also covers caching", or "the /create-pr skill's review chain needs a new step"), it raises an `AskUserQuestion` gate. The user approves, the file is updated; the user rejects, the proposal is logged to journal as "rejected" with the reason.
 
@@ -159,7 +167,7 @@ Without a blueprint, the agent guesses how to create new units. With a blueprint
 For teams already shipping under `core@<1.5.0`:
 
 - **Agents already have `children/`** — keep it. Add `knowledge-base-summary` frontmatter to each existing child file (the file's content is unchanged; only frontmatter is added at the top).
-- **Skills do NOT have `learnings/` yet** — bootstrap: create the empty directory, append `## Accumulated Learnings` section to the SKILL.md (initially empty body), let it grow naturally as `/save-learnings` runs.
+- **Skills do NOT have `learnings/` yet** — bootstrap: create the empty directory, append `## Accumulated Learnings` section to the skill.md (initially empty body), let it grow naturally as `/save-learnings` runs.
 - **agent.md's Knowledge Base section** — keep what's there; the next `/save-learnings` run will rebuild it from frontmatter (existing summaries preserved if frontmatter copies them).
 
 The migration is per-team and is owned by Phase 2.C of self-updating-learning-loop (separate PRs per team repo: software-project-team, design-system-team, etc.).

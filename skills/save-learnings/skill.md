@@ -1,6 +1,6 @@
 ---
 name: save-learnings
-description: "Persist conversation learnings to journal + wiki + agent children + skill learnings, with auto-rebuild of agent.md / SKILL.md Knowledge Base sections from frontmatter. Multi-transcript input via --transcripts. Updates the learning-capture state file at completion (closes the auto-trigger loop). AskUserQuestion gates only for new structure creation: new agent, new skill, new rule, agent identity change, skill core change. Everything else is automatic."
+description: "Persist conversation learnings to journal + wiki + agent children + skill learnings, with auto-rebuild of agent.md / skill.md Knowledge Base sections from frontmatter. Multi-transcript input via --transcripts. Updates the learning-capture state file at completion (closes the auto-trigger loop). AskUserQuestion gates only for new structure creation: new agent, new skill, new rule, agent identity change, skill core change. Everything else is automatic."
 argument-hint: "[agent-name] | --from-markers [--transcripts a.jsonl,b.jsonl,...]"
 ---
 
@@ -80,9 +80,9 @@ In hook + single modes, agent identification happens per-marker (each marker may
 | Convention crystallized ("never auto-merge", "always use prepared statements") | **AskUserQuestion → new rule** via `/rule` |
 | Domain area without an owning agent | **AskUserQuestion → new agent** |
 | Existing agent's identity expanded (e.g. api-agent now also covers caching) | **AskUserQuestion → agent.md core update** (Q2 C-layer) |
-| Existing skill's core flow needs change | **AskUserQuestion → SKILL.md core update** (Q3 C-layer) |
+| Existing skill's core flow needs change | **AskUserQuestion → skill.md core update** (Q3 C-layer) |
 
-The first four rows happen silently. The last five rows go through `AskUserQuestion` per Mesut's #2 requirement: "Yeni bir agent veya skill gerektiriyorsa yada yenilerini oluşturmak gerekiyorsa, bu yapılabilsin. Bu gibi şeylerde kullanıcıya bilgi verilerek onay istenebilir."
+The first four rows happen silently. The last five rows go through `AskUserQuestion` per the platform's requirement #2: *"If a new agent or skill is required, or if new ones need to be created, that should be possible. In cases like these, the user can be informed and asked for approval."* (Translation of the maintainer's verbatim TR statement; original kept in journal/brainstorm history.)
 
 ### 4. Write journal (Q4 — single layer for time-based content)
 
@@ -214,9 +214,9 @@ For each learning destined for a specific skill:
 2. Ensure `learnings/` subdirectory exists (create if first learning for this skill)
 3. Create or update `learnings/{topic}.md` with the same `knowledge-base-summary:` frontmatter pattern as children/
 
-### 10. Rebuild SKILL.md Accumulated Learnings section (Q3 B-layer — automatic, mirrors step 8)
+### 10. Rebuild skill.md Accumulated Learnings section (Q3 B-layer — automatic, mirrors step 8)
 
-If any `learnings/*.md` was created/updated in step 9, regenerate the `## Accumulated Learnings` section in the skill's `SKILL.md`:
+If any `learnings/*.md` was created/updated in step 9, regenerate the `## Accumulated Learnings` section in the skill's `skill.md`:
 
 ```markdown
 ## Accumulated Learnings
@@ -234,7 +234,7 @@ If any `learnings/*.md` was created/updated in step 9, regenerate the `## Accumu
 ...
 ```
 
-If `## Accumulated Learnings` doesn't exist yet, append it at the end of SKILL.md (after the existing content). Subsequent rebuilds replace the section in place.
+If `## Accumulated Learnings` doesn't exist yet, append it at the end of skill.md (after the existing content). Subsequent rebuilds replace the section in place.
 
 ### 11. AskUserQuestion gates (Q2 C-layer + Q3 C-layer + new structure)
 
@@ -253,14 +253,14 @@ Three structural changes are proposed by this batch of learnings. Approve which?
     Reason: domain expanded to include caching strategy
     Diff: agent.md "Responsibility" section adds a caching paragraph
     
-[3] Update SKILL.md core: /create-pr
+[3] Update skill.md core: /create-pr
     Reason: review chain now needs a CI-pre-merge poll loop
     Diff: skill.md step 6 adds a `until COMPLETED && SUCCESS` poll
 
 Approve which? (multi-select)
 [ ] (1) Create skill /repo-status
 [ ] (2) Update api-agent identity
-[ ] (3) Update /create-pr SKILL.md
+[ ] (3) Update /create-pr skill.md
 [ ] All
 [ ] None (skip all structural changes; everything else still saves)
 ```
@@ -292,7 +292,7 @@ This is what tells the next `atl learning-capture --previous-transcripts` run th
 
 ### 13. Push team repo (if any team-repo files were modified)
 
-For each team repo whose files (children/, learnings/, agent.md, SKILL.md, known-issues.md, etc.) were modified by this run:
+For each team repo whose files (children/, learnings/, agent.md, skill.md, known-issues.md, etc.) were modified by this run:
 
 ```bash
 cd ~/.claude/repos/agentteamland/{team-name}
@@ -303,7 +303,7 @@ git push
 
 This pushes to the **user's local clone** of the team repo. The clone's origin is the public `agentteamland/{team}` repo, so users without push permission will see a permission-denied error here. That's expected — they keep their changes locally; the upstream contribution flow (separate brainstorm: `upstream-contribution-stream`) is what eventually packages them as a PR.
 
-For maintainers (mkurak), this push lands directly on `origin/main` because they have direct push access. **This is the documented exception to the team-repo-maintenance rule**: maintainer's local save-learnings can push because the maintainer's intent is "I'm at the source." Public users see the permission error and stay local-only.
+For team-repo maintainers with direct push access, this push lands on a PR branch (created automatically) and goes through the standard branch-protection PR gate. Public users without push permission see the permission error and stay local-only — their changes are preserved in the project clone for later upstream contribution.
 
 ### 14. Report to user
 
@@ -332,7 +332,7 @@ Keep the report concise. Detail belongs in journal; this report is just the "did
 
 1. **No confirmation for non-structural writes.** Memory/journal/wiki/agent-children/skill-learnings all happen silently. The user sees the result, not a question per write.
 
-2. **AskUserQuestion ONLY for new structures or identity changes.** New skill, new rule, new agent, agent.md identity update, SKILL.md core update. These are gated per Mesut's #2 requirement.
+2. **AskUserQuestion ONLY for new structures or identity changes.** New skill, new rule, new agent, agent.md identity update, skill.md core update. These are gated per platform requirement #2.
 
 3. **State file write is the closing bracket.** Until the state file updates, the markers remain "unprocessed" and will re-report on next SessionStart. This is the safety net against partial-write data loss.
 
@@ -342,18 +342,18 @@ Keep the report concise. Detail belongs in journal; this report is just the "did
 
 6. **Team repo push is automatic for maintainers, fails gracefully for users.** Don't try to PR-instead-of-push when the push fails — that's the upstream-contribution-stream brainstorm's job. Just log the failure to journal and move on.
 
-7. **Onay-gate batching.** When multiple structural changes appear in one batch of markers, ask one AskUserQuestion with multi-select, not N separate prompts. Mesut's #3 ("manual operation must not be required") still allows the gates from #2, but should keep the friction at one decision point per save-learnings run.
+7. **Approval-gate batching.** When multiple structural changes appear in one batch of markers, ask one AskUserQuestion with multi-select, not N separate prompts. Platform requirement #3 ("manual operation must not be required") still allows the gates from #2, but should keep the friction at one decision point per save-learnings run.
 
 8. **Skill creation threshold = 2 instances.** Don't auto-propose a new skill on a single workflow occurrence. Either the same workflow appears 2+ times in this batch of markers, OR it appears once in the markers AND once in journal history (cross-session pattern detection).
 
 9. **Rule creation criteria = unambiguous "always X" / "never Y" wording in the marker body.** Hedged language ("we should probably do X") goes to wiki, not rule.
 
-## Phase 2.B context
+## History
 
-This skill rewrite is part of self-updating-learning-loop Phase 2.B. The full implementation surface:
+This skill was introduced in `core@1.0.0` (manual mode only) and rewritten in `core@1.8.0` (Phase 2.B of self-updating-learning-loop) to add: hook mode (`--from-markers --transcripts`), multi-transcript input, state-file write, AskUserQuestion gates batched per run, and the Q2/Q3 layered model that auto-grows agent `children/` and skill `learnings/` directories with KB-section auto-rebuild.
 
-- **PR 2B.1 (this PR)**: skill.md rewrite with Q2/Q3 layered model, multi-transcript input, state-file write, AskUserQuestion gates
-- **PR 2B.2** (next): workspace migration — `.claude/agent-memory/*.md` → `.claude/journal/`, agent children frontmatter, skill learnings/ creation, agent core principle wiki-discipline line
-- **PR 2B.3**: rule rewrites in core — `learning-capture.md` (SessionStart-driven), `memory-system.md` → `knowledge-system.md` (2-layer), `agent-structure.md` extension (skills covered too)
+Phase 2.A (`atl v1.1.0`) shipped the SessionStart wrapper that triggers this skill via additionalContext. Phase 2.C migrated 195 children files in software-project-team + design-system-team to `knowledge-base-summary` frontmatter. Phase 2.D (docs site refresh) is the remaining work tracked in workspace `CLAUDE.md`.
 
-After Phase 2.B + 2.C (per-team migrations) ship, the auto-trigger loop is end-to-end functional: SessionStart hook scans → Claude sees marker report in additionalContext → invokes this skill → markers persist + state advances → next session sees fresh markers only.
+## Accumulated Learnings
+
+(Auto-rebuilt by /save-learnings from learnings/*.md frontmatter. Do not edit by hand. Currently empty — populates as the skill is used and edge-case learnings accumulate.)

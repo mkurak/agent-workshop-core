@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.8.0",
-  "description": "Core infrastructure for AgentTeamLand teams \u2014 memory, journal, wiki, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy-guidelines, schemas",
+  "version": "1.9.0",
+  "description": "Core infrastructure for AgentTeamLand teams \u2014 journal, wiki, knowledge-system, agent-structure, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy, schemas",
   "author": {
     "name": "AgentTeamLand",
     "url": "https://github.com/agentteamland"
@@ -21,7 +21,7 @@
   "skills": [
     {
       "name": "save-learnings",
-      "description": "Save end-of-conversation learnings to project memory, wiki (mandatory), team repo, and journal; prepares doc drafts for doc-impact markers"
+      "description": "Persist learnings to journal + wiki + agent children + skill learnings, with KB auto-rebuild from frontmatter; multi-transcript hook mode + state-file write"
     },
     {
       "name": "create-code-diagram",
