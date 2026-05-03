@@ -24,6 +24,8 @@ Core infrastructure for all agent teams. Provides the journal + wiki knowledge s
 
 Core is installed automatically by `install.sh` (bootstrap). No manual installation needed.
 
+**Requires `atl` ≥ 1.1.3** (per `team.json`'s `requires.atl`). The `1.1.3` floor is set by `core@1.10.0`'s use of `atl learning-capture --commit-from-transcripts` — the CLI mode that closes the long-session re-report bug. Earlier `atl` versions still install core, but `/save-learnings` step 12 cannot delegate state-file maintenance and falls back to the older modtime-only state advance.
+
 ## How It Works
 
 ### Two-Layer Knowledge
@@ -86,7 +88,10 @@ Next Session Start:
     - Rebuilds skill.md Accumulated Learnings section
     - For new skill / rule / agent / agent.md identity / skill.md core changes:
         AskUserQuestion (ONE multi-select prompt per run)
-    - Writes ~/.claude/state/learning-capture-state.json (closes the loop)
+    - Calls atl learning-capture --commit-from-transcripts (atl ≥ 1.1.3) — the CLI
+      records per-marker hashes in ~/.claude/state/learning-capture-state.json
+      (FIFO-capped at 5000), so the next SessionStart does not re-report markers
+      that were processed inside the same long-running session
     - Pushes team-repo writes (auto for maintainers, graceful fail otherwise)
 ```
 
