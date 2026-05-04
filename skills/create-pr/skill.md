@@ -1,7 +1,7 @@
 ---
 name: create-pr
-description: "Move dirty changes to an auto-named branch, run save-learnings + AI review chain (generic baseline + team specialists), open PR. Optional --auto-merge enables GitHub auto-merge with polling + auto-fix loop. End-of-work returns the user to the target branch. Designed to satisfy team-repo-maintenance + branch-protection discipline."
-argument-hint: "[--auto-merge] [--no-review] [--no-auto-fix] [--no-learning] [--timeout N]"
+description: "Move dirty changes to an auto-named branch, run save-learnings + docs-sync drain + AI review chain (generic baseline + team specialists), open PR. Optional --auto-merge enables GitHub auto-merge with polling + auto-fix loop. End-of-work returns the user to the target branch."
+argument-hint: "[--auto-merge] [--no-review] [--no-auto-fix] [--no-learning] [--no-docs-sync] [--timeout N]"
 ---
 
 # /create-pr Skill
@@ -19,7 +19,8 @@ This skill is the deterministic "ship a piece of work" flow — it consumes the 
 | `--auto-merge` | OFF | Enable GitHub auto-merge (`gh pr merge --auto --merge`); poll + auto-fix until merged or terminal failure |
 | `--no-review` | OFF (review on) | Skip the entire review chain (generic + every team reviewer) |
 | `--no-auto-fix` | OFF (fix on) | During the polling loop, do not attempt to fix CI/merge failures; surface to the user instead |
-| `--no-learning` | OFF (learning on) | Skip `/save-learnings` + doc-impact pipeline |
+| `--no-learning` | OFF (learning on) | Skip Step 4 (`/save-learnings`) entirely. Step 4.5 still runs unless `--no-docs-sync` is also passed. |
+| `--no-docs-sync` | OFF (docs-sync on) | Skip Step 4.5 (`/docs-sync` drain + drift-detector). Useful when the change has no user-facing surface. |
 | `--timeout {min}` | 10 | Polling timeout in minutes; 1-minute interval, applies to both `--auto-merge` and manual-merge wait |
 
 ## Flow
@@ -78,19 +79,60 @@ Do not ask the user to confirm names — generate, proceed.
 Invoke `/save-learnings` in manual mode (no `--from-markers` flag — analyzes the live conversation). This:
 - Writes wiki / journal / agent children / skill learnings updates (project-local).
 - Updates team-repo files for maintainers with push access; users without push see a graceful permission-denied and stay local.
-- Prepares `doc-impact` drafts for any `<!-- learning -->` markers with `doc-impact: readme/docs/breaking`.
-
-For each prepared draft, present it inline to the user for accept/reject/edit:
-
-```
-📝 Doc draft for README.md:
-<diff>
-Accept? (y/n/edit)
-```
-
-Accepted drafts are staged. Rejected drafts are discarded.
+- Marker writes with `doc-impact != none` accumulate in the transcript; **draft authoring happens in Step 4.5**, not here.
 
 If `/save-learnings` is not installed (defensive), skip with a one-line notice: "save-learnings not available; continuing without learning capture." Do not fail the skill.
+
+### Step 4.5 — `/docs-sync` drain (unless `--no-docs-sync`)
+
+This step bridges the work just done (Step 4 + the staged code diff) to the documentation surface. Two paths share a single sub-skill invocation. Per Q2 of the [docs-sync-automation brainstorm](https://github.com/agentteamland/workspace/blob/main/.claude/brain-storms/docs-sync-automation.md): wisdom + docs + code ride along in one atomic PR. The review chain (Step 5) sees the doc drafts too.
+
+#### Pre-flight (boring sessions stay free)
+
+Before invoking the `/docs-sync` skill, check whether ANY drift surface exists:
+
+```bash
+# Marker path: any pending doc-impact != none markers in the active transcript(s)?
+markers=$(grep -E 'doc-impact:\s*(readme|docs|both|breaking)' "$transcript_path" | wc -l)
+
+# Diff path: does the staged diff touch a doc-affecting surface?
+diff_match=$(git diff --cached --name-only | grep -E '^(cmd/atl/commands/|skills/|rules/|agents/|team\.json|scripts/|docs/site/)')
+
+# Both empty? Skip Step 4.5 with a one-liner.
+if [ "$markers" -eq 0 ] && [ -z "$diff_match" ]; then
+  echo "✅ /docs-sync: doküman güncellemesi gerekmiyor (boş ön-kontrol)"
+  goto Step 5
+fi
+```
+
+For non-doc-affecting PRs (typo fixes, internal tests, refactors with no public surface), pre-flight always returns empty. **Zero token cost.**
+
+#### Invoke `/docs-sync` with PR context
+
+Pass:
+- The transcript path(s) for marker drain.
+- The PR's git diff (`git diff --cached`) for diff-driven drift-detector scope.
+
+```
+Skill(skill="docs-sync", args="--from-pr-context")
+```
+
+The `/docs-sync` skill (see [`skills/docs-sync/skill.md`](../docs-sync/skill.md)) runs:
+
+1. **Marker drain** — extracts pending markers, hashes them against the state file, groups by target page, invokes `doc-rewriter` sub-agent per cluster.
+2. **Diff-driven sub-checks** — `drift-detector` sub-agent runs the 3 sub-checks (`cli-flag-tarayıcı`, `versiyon-referansı-tarayıcı`, `kapsama-denetleyicisi`) IN PARALLEL, scoped to the PR diff (not full repo).
+3. **Bilingual handling** — `parity-checker` sub-agent generates TR mirrors for accepted EN drafts via Mode 1 (same-pass translation).
+4. **Drafts** — each cluster surfaces an inline accept / reject / edit prompt.
+
+#### Drafts → same branch
+
+Accepted drafts are staged on the active feature branch (we are NOT on the target branch yet — `git checkout -b {branch-name}` happens in Step 6, but staging into the working tree happens here). The drafts ride along in the same PR. Step 5 (review chain) sees the staged docs too — the generic + team reviewers can flag inconsistencies between the code change and its doc explanation.
+
+#### State file write
+
+After Step 4.5 completes (whether drafts were authored or pre-flight was empty), update `~/.claude/state/docs-sync-state.json` with the marker hashes processed and the timestamp. This is delegated to a future CLI command — see `atl docs-sync --commit-from-state` (Phase 3 plan, item 6). Until that ships, the `/docs-sync` skill writes the state file directly with atomic semantics.
+
+If `/docs-sync` is not installed (defensive — pre-`core@1.11.0` projects), skip with a one-line notice: "/docs-sync not available; documentation drift not checked. Run `atl update` to refresh the core skill set." Do not fail the create-pr skill.
 
 ### Step 5 — Review chain (unless `--no-review`)
 
@@ -311,7 +353,8 @@ A consolidated, single-block report:
    PR:          https://github.com/.../pull/N
    Review:      generic + 1 team reviewer (software-project-team)
                 3 issues, 1 concern, all addressed
-   Learnings:   /save-learnings ran — 2 wiki pages updated, 1 README draft accepted
+   Learnings:   /save-learnings ran — 2 wiki pages updated
+   Docs-sync:   3 markers drained, 1 EN+TR draft accepted; drift-detector found 0 issues
    Auto-merge:  enabled, merged after 4 min (1 auto-fix: prettier formatting)
    End-of-work: returned to main, pulled latest
 ```
@@ -337,9 +380,10 @@ Adjust the report fields to match what actually happened. If something was skipp
 - [team-repo-maintenance](../../rules/team-repo-maintenance.md) — governance for shared repos (discipline this skill enforces)
 - [branch-hygiene](../../rules/branch-hygiene.md) — drift-prevention checkpoints
 - [learning-capture](../../rules/learning-capture.md) — inline marker protocol (consumed by `/save-learnings`)
-- [docs-sync](../../rules/docs-sync.md) — proactive doc updates (consumed via doc-impact drafts)
+- [docs-sync](../../rules/docs-sync.md) — proactive doc updates (drained at Step 4.5 via the `/docs-sync` skill)
 - [karpathy-guidelines](../../rules/karpathy-guidelines.md) — review prompt's foundation
 - [/save-learnings](../save-learnings/skill.md) — invoked at Step 4
+- [/docs-sync](../docs-sync/skill.md) — invoked at Step 4.5
 
 ## Future evolution (v2)
 
