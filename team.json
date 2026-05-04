@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "Core infrastructure for AgentTeamLand teams \u2014 journal, wiki, knowledge-system, agent-structure, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy, schemas",
   "author": {
     "name": "AgentTeamLand",
@@ -63,7 +63,7 @@
     },
     {
       "name": "docs-sync",
-      "description": "Proactive docs sync: when user-facing behavior changes, update README / doc site in the same turn (or mark doc-impact for session-end backstop)"
+      "description": "Proactive docs sync rule: drop a doc-impact marker when user-facing behavior changes. Stub policy: doc-impact:docs is common, readme is rare. Drained by the /docs-sync skill."
     },
     {
       "name": "team-repo-maintenance",

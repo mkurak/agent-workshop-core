@@ -46,7 +46,7 @@ body: 7-day JWT refresh chosen because we want long sessions; user logs in once 
 
 - `topic` — kebab-case, one concept (auth-refresh, redis-ttl, build-pipeline). Becomes the wiki page name.
 - `kind` — one of `bug-fix | decision | pattern | anti-pattern | discovery | convention`
-- `doc-impact` — one of `none | readme | docs | both | breaking`. Default `none` when unsure.
+- `doc-impact` — one of `none | readme | docs | both | breaking`. Default `none` when unsure. **Post-Phase-2 stub policy** (2026-05-03+): `readme` is rare (identity / link / license only); `docs` is the common case for user-facing changes. See the [docs-sync rule](docs-sync.md#uniform-stub-policy-post-phase-2) for the full semantics.
 - `body` — one to three sentences. **Always include the WHY.** A 6-month-old "we chose X" without reasoning is useless.
 
 Multiple markers per response are fine when multiple learnings happen. Do NOT bundle unrelated learnings into one marker — each topic deserves its own.
@@ -110,7 +110,14 @@ A tool call per learning would double token cost and slow conversation. Inline m
 
 ## Dual with docs-sync
 
-The `doc-impact` field ties this rule to [docs-sync](docs-sync.md). If you mark `doc-impact: readme` or `docs`, docs-sync takes over to prepare the actual README / doc-site changes. You don't need to update docs manually in the same turn — marking is enough, as long as you do mark.
+The `doc-impact` field ties this rule to [docs-sync](docs-sync.md) and the [`/docs-sync` skill](../skills/docs-sync/skill.md). If you mark `doc-impact: readme`, `docs`, `both`, or `breaking`, the `/docs-sync` skill takes over to prepare the actual README / doc-site drafts.
+
+Two drain paths share the same skill core:
+
+- **`/create-pr` Step 4.5 (default, ship-time)** — when the user invokes `/create-pr`, Step 4.5 calls `/docs-sync` over the PR's transcript + diff. Marker drafts ride along in the same PR.
+- **Manual `/docs-sync` (catch-up)** — user invokes the skill periodically; pending markers from prior sessions get drained then.
+
+You don't need to update docs manually in the same turn — marking is enough, as long as you do mark. The bilingual mirror (TR derivation from EN) is also automatic; the parity-checker sub-agent handles regeneration.
 
 ## When the hook isn't installed
 
