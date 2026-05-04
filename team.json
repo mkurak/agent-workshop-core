@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "Core infrastructure for AgentTeamLand teams \u2014 journal, wiki, knowledge-system, agent-structure, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy, schemas",
   "author": {
     "name": "AgentTeamLand",
@@ -34,6 +34,10 @@
     {
       "name": "create-pr",
       "description": "Move dirty changes to an auto-named branch, run save-learnings + AI review chain, open PR; optional --auto-merge with polling + auto-fix loop; end-of-work returns to target branch"
+    },
+    {
+      "name": "docs-sync",
+      "description": "Drain marker-driven docs queue + drift-detector + parity-checker over the changed scope. Composite of Q1+Q4+Q5+Q7 of the docs-sync-automation brainstorm. Boring sessions free."
     }
   ],
   "rules": [
