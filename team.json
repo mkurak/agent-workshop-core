@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "description": "Core infrastructure for AgentTeamLand teams \u2014 journal, wiki, knowledge-system, agent-structure, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy, schemas",
   "author": {
     "name": "AgentTeamLand",
@@ -33,7 +33,7 @@
     },
     {
       "name": "create-pr",
-      "description": "Move dirty changes to an auto-named branch, run save-learnings + AI review chain, open PR; optional --auto-merge with polling + auto-fix loop; end-of-work returns to target branch"
+      "description": "Move dirty changes to an auto-named branch, run save-learnings + docs-sync drain + AI review chain, open PR; optional --auto-merge with polling + auto-fix loop; end-of-work returns to target branch"
     },
     {
       "name": "docs-sync",
