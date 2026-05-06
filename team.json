@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "description": "Core infrastructure for AgentTeamLand teams \u2014 journal, wiki, knowledge-system, agent-structure, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy, schemas",
   "author": {
     "name": "AgentTeamLand",
