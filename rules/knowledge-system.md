@@ -52,7 +52,7 @@ At the start of every conversation, the agent reads (when applicable):
 
 1. **Its own agent file** — from team, via symlink or copy. The agent.md ships with a Knowledge Base section auto-aggregated from children/*.md frontmatter (per [agent-structure.md](agent-structure.md)).
 2. **CLAUDE.md `<!-- wiki:index -->` block** — auto-loaded; gives the knowledge map at zero cost. Agents discover relevant wiki pages from this list rather than scanning `.claude/wiki/` directly.
-3. **Recent journal entries** when the task overlaps with prior work — `.claude/journal/` (last few entries are usually enough)
+3. **Recent journal entries** when the task overlaps with prior work — `.claude/journal/` (last 3–5 entries by default; the agent extends scope when the task touches a long-running thread)
 4. **Project-specific rules** at `.claude/docs/coding-standards/{app}.md` if present
 
 The agent does NOT read all wiki pages. It reads the index (auto-loaded), and only follows links to detail pages when the task touches that domain. This keeps context tight while preserving discoverability.
