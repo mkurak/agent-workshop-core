@@ -1,6 +1,6 @@
 # Agent + skill structure rules
 
-(Renamed in scope from "Agent Configuration Rules" in `core@1.8.0` — the same children + Knowledge-Base pattern now applies to skills too, per [self-updating-learning-loop Q3](https://github.com/agentteamland/workspace/blob/main/.claude/docs/self-updating-learning-loop.md). Single mental model across agent and skill.)
+(Renamed in scope from "Agent Configuration Rules" in `core@1.8.0` — the same children + Knowledge-Base pattern now applies to skills too, per [self-updating-learning-loop Q3](https://github.com/agentteamland/workspace/blob/main/.atl/docs/self-updating-learning-loop.md). Single mental model across agent and skill.)
 
 ## Children Pattern (agent) — Mandatory
 
@@ -43,7 +43,7 @@ Every skill mirrors the agent structure. Two locations matter:
 └── learnings/            ← Same pattern; auto-grown copies
 ```
 
-Per [install-mechanism-redesign](https://github.com/agentteamland/workspace/blob/main/.claude/docs/install-mechanism-redesign.md), `atl install` copies skills (and now agents + rules) into the project. `atl update` refreshes unmodified copies via three-way SHA-256 comparison. `/save-learnings` writes to the project-local copy first; the auto-update flow propagates changes upstream when the user is the team-repo maintainer.
+Per [install-mechanism-redesign](https://github.com/agentteamland/workspace/blob/main/.atl/docs/install-mechanism-redesign.md), `atl install` copies skills (and now agents + rules) into the project. `atl update` refreshes unmodified copies via three-way SHA-256 comparison. `/save-learnings` writes to the project-local copy first; the auto-update flow propagates changes upstream when the user is the team-repo maintainer.
 
 This mirrors `children/` for agents. Same shape, same rules, same `knowledge-base-summary` frontmatter convention. The skill's `skill.md` ships with an "Accumulated Learnings" section auto-aggregated from `learnings/*.md` frontmatter — same mechanism as agent.md's Knowledge Base.
 

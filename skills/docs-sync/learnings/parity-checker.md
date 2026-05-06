@@ -174,5 +174,5 @@ Unified diff per page, as plain text. Two diffs when running same-pass translati
 
 - [drift-detector.md](drift-detector.md) — sister sub-agent. Runs first; produces the EN drift list parity-checker mirrors.
 - [doc-rewriter.md](doc-rewriter.md) — produces the EN drafts. Same-pass translation hands off from doc-rewriter directly.
-- [Translation quality bar — Q5 of brainstorm](https://github.com/agentteamland/workspace/blob/main/.claude/brain-storms/docs-sync-automation.md#q5--bilingual-handling-tr-derived-from-en-full-regeneration-on-change) — original specification.
-- [TR anchor link convention wiki](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/tr-anchor-link-convention.md) — historical context on why explicit anchors matter.
+- [Translation quality bar — Q5 of brainstorm](https://github.com/agentteamland/workspace/blob/main/.atl/brain-storms/docs-sync-automation.md#q5--bilingual-handling-tr-derived-from-en-full-regeneration-on-change) — original specification.
+- [TR anchor link convention wiki](https://github.com/agentteamland/workspace/blob/main/.atl/wiki/tr-anchor-link-convention.md) — historical context on why explicit anchors matter.

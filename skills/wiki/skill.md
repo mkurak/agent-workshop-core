@@ -15,7 +15,7 @@ The wiki answers: "What is the current truth about X in this project?"
 ## Location
 
 ```
-.claude/wiki/
+.atl/wiki/
 ├── index.md                    ← Auto-maintained table of contents
 ├── {topic-1}.md                ← Knowledge pages (kebab-case)
 ├── {topic-2}.md
@@ -28,15 +28,15 @@ The wiki answers: "What is the current truth about X in this project?"
 
 **Usage:** `/wiki init` (no argument)
 
-Scaffolds `.claude/wiki/` in the current project. Safe to re-run — it's a no-op if the wiki is already initialized.
+Scaffolds `.atl/wiki/` in the current project. Safe to re-run — it's a no-op if the wiki is already initialized.
 
 **Process:**
 
-1. Check for `.claude/wiki/` directory.
+1. Check for `.atl/wiki/` directory.
    - Does not exist → create it.
    - Exists with `index.md` containing the initialized template → **idempotent no-op**, print `wiki: already initialized (N pages)` and exit.
    - Exists but empty or missing `index.md` → treat as not-yet-initialized and continue.
-2. Create `.claude/wiki/index.md` with this template:
+2. Create `.atl/wiki/index.md` with this template:
 
    ```markdown
    # Project Wiki
@@ -60,11 +60,11 @@ Scaffolds `.claude/wiki/` in the current project. Safe to re-run — it's a no-o
    - **Run `/wiki lint`** periodically to catch stale / orphan / contradicting pages.
    ```
 
-3. Report one-line status: `wiki initialized at .claude/wiki/ (ready for ingest)`
+3. Report one-line status: `wiki initialized at .atl/wiki/ (ready for ingest)`
 
 **When init fires automatically:**
 
-- First session of a project where the user has `atl setup-hooks` installed but the project has no `.claude/wiki/` yet — the `SessionStart` hook invokes `/wiki init` as part of the wiki-bootstrap step.
+- First session of a project where the user has `atl setup-hooks` installed but the project has no `.atl/wiki/` yet — the `SessionStart` hook invokes `/wiki init` as part of the wiki-bootstrap step.
 - Manual: user runs `/wiki init` directly.
 
 **What init does NOT do:**
@@ -82,9 +82,9 @@ Scans all project knowledge sources and updates wiki pages:
 
 **Sources scanned:**
 1. `<!-- learning -->` markers in the current session transcript — primary source, see [learning-capture rule](../../rules/learning-capture.md)
-2. `.claude/journal/*.md` — chronological per-agent learning record (the post-Q4 single layer; supersedes the retired `agent-memory/`)
-3. `.claude/docs/*.md` — finalized decisions from brainstorms
-4. `.claude/brain-storms/*.md` (completed only) — decision context
+2. `.atl/journal/*.md` — chronological per-agent learning record (the post-Q4 single layer; supersedes the retired `agent-memory/`)
+3. `.atl/docs/*.md` — finalized decisions from brainstorms
+4. `.atl/brain-storms/*.md` (completed only) — decision context
 5. Recent conversation context — what was just discussed/built
 
 **Process:**

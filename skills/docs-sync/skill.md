@@ -90,7 +90,7 @@ Read input transcripts, grep for `<!-- learning ... -->` blocks, parse YAML fiel
 - `doc-impact: both` → README + docs page.
 - `doc-impact: breaking` → docs page + a CHANGELOG note (if the repo carries one).
 
-Per [stub-policy-doc-impact-semantics](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/stub-policy-doc-impact-semantics.md): post-Phase-2, `doc-impact: readme` should be RARE (only identity / link / license changes — README is a stub). Most user-facing changes route to `docs`.
+Per [stub-policy-doc-impact-semantics](https://github.com/agentteamland/workspace/blob/main/.atl/wiki/stub-policy-doc-impact-semantics.md): post-Phase-2, `doc-impact: readme` should be RARE (only identity / link / license changes — README is a stub). Most user-facing changes route to `docs`.
 
 **1c — For each grouped target, invoke `doc-rewriter` sub-agent.**
 
@@ -218,7 +218,7 @@ All three are invoked via the `Task` tool with `subagent_type: general-purpose`.
 - [`/save-learnings`](../save-learnings/skill.md) — produces the `<!-- learning -->` markers this skill drains.
 - [`docs-sync` rule](../../rules/docs-sync.md) — marker semantics + uniform stub policy.
 - [`learning-capture` rule](../../rules/learning-capture.md) — `doc-impact` field definition (input to this skill).
-- [docs-sync-automation brainstorm](https://github.com/agentteamland/workspace/blob/main/.claude/brain-storms/docs-sync-automation.md) — the design that produced this skill (Q1+Q2+Q3+Q4+Q5+Q7 settled).
+- [docs-sync-automation brainstorm](https://github.com/agentteamland/workspace/blob/main/.atl/brain-storms/docs-sync-automation.md) — the design that produced this skill (Q1+Q2+Q3+Q4+Q5+Q7 settled).
 
 ## History
 

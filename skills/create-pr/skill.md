@@ -85,7 +85,7 @@ If `/save-learnings` is not installed (defensive), skip with a one-line notice: 
 
 ### Step 4.5 — `/docs-sync` drain (unless `--no-docs-sync`)
 
-This step bridges the work just done (Step 4 + the staged code diff) to the documentation surface. Two paths share a single sub-skill invocation. Per Q2 of the [docs-sync-automation brainstorm](https://github.com/agentteamland/workspace/blob/main/.claude/brain-storms/docs-sync-automation.md): wisdom + docs + code ride along in one atomic PR. The review chain (Step 5) sees the doc drafts too.
+This step bridges the work just done (Step 4 + the staged code diff) to the documentation surface. Two paths share a single sub-skill invocation. Per Q2 of the [docs-sync-automation brainstorm](https://github.com/agentteamland/workspace/blob/main/.atl/brain-storms/docs-sync-automation.md): wisdom + docs + code ride along in one atomic PR. The review chain (Step 5) sees the doc drafts too.
 
 #### Pre-flight (boring sessions stay free)
 

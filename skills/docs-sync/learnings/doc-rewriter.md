@@ -51,7 +51,7 @@ When a change requires a new section, place it in the canonical position relativ
 
 Touch only what the marker / drift item requires. Do not "improve" adjacent prose, fix unrelated typos, or rework section ordering as a side effect.
 
-The single exception: the [stub-policy-doc-impact-semantics](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/stub-policy-doc-impact-semantics.md) post-Phase-2 policy. If a marker carries `doc-impact: readme` AND the target README is a stub (per uniform stub policy), the sub-agent should re-route the change to the docs-site equivalent and leave the README untouched. The README is documentation of the stub policy itself, not a place for evolving content.
+The single exception: the [stub-policy-doc-impact-semantics](https://github.com/agentteamland/workspace/blob/main/.atl/wiki/stub-policy-doc-impact-semantics.md) post-Phase-2 policy. If a marker carries `doc-impact: readme` AND the target README is a stub (per uniform stub policy), the sub-agent should re-route the change to the docs-site equivalent and leave the README untouched. The README is documentation of the stub policy itself, not a place for evolving content.
 
 ### Convergence with related markers
 
@@ -145,5 +145,5 @@ A marker with `doc-impact: docs` may target the wrong page if the topic is ambig
 
 - [drift-detector.md](drift-detector.md) — produces the drift items this sub-agent consumes.
 - [parity-checker.md](parity-checker.md) — receives the EN draft for TR mirror generation.
-- [stub-policy-doc-impact-semantics wiki](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/stub-policy-doc-impact-semantics.md) — `doc-impact: readme` routing policy after Phase 2 stub conversion.
+- [stub-policy-doc-impact-semantics wiki](https://github.com/agentteamland/workspace/blob/main/.atl/wiki/stub-policy-doc-impact-semantics.md) — `doc-impact: readme` routing policy after Phase 2 stub conversion.
 - [PR merge discipline](../../rules/team-repo-maintenance.md#pr-merge-discipline-absolute-no-exceptions) — the never-merge rule the auto-staging respects.
