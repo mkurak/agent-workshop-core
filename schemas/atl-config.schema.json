@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/agentteamland/core/main/schemas/atl-config.schema.json",
+  "title": "AgentTeamLand ATL Config",
+  "description": "Schema for atl-config.json — the user/project-tunable configuration layer for the atl CLI. Lives at ~/.atl/config.json (global) and ./.atl/config.json (project). Effective config is global-merged-with-project, with project overriding. Holds 9 user-tunable keys (see properties below). Decision context: workspace .claude/docs/atl-config-system.md (decided 2026-05-06).",
+  "type": "object",
+  "required": ["schemaVersion"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "description": "Schema version number (monotonic integer). Bumped on any field add / remove / rename / type change / enum change / default semantic change. Current: 1. atl auto-migrates older versions silently with a backup at ~/.atl/config.json.bak.v{N}.",
+      "const": 1
+    },
+    "cli": {
+      "description": "CLI behavior settings.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "locale": {
+          "description": "User-facing locale for atl CLI output (welcome flow, prompts, error messages). v1 only ships English; the cli-localization brainstorm will widen this with the actual translation infrastructure. 'tr' is accepted in the schema for forward-compatibility but currently behaves as 'en' until cli-localization ships.",
+          "type": "string",
+          "enum": ["en", "tr"],
+          "default": "en"
+        }
+      }
+    },
+    "autoUpdate": {
+      "description": "Auto-update behavior settings (atl update + atl session-start hooks). Disable individual hooks or tune throttling here.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sessionStartEnabled": {
+          "description": "Whether the SessionStart hook runs atl session-start (cached repo pull + previous-transcript marker scan + atl-version check). Set to false to disable session-start auto-update entirely.",
+          "type": "boolean",
+          "default": true
+        },
+        "promptSubmitEnabled": {
+          "description": "Whether the UserPromptSubmit hook runs atl update (cache repo pull, throttled). Set to false to disable per-message auto-update.",
+          "type": "boolean",
+          "default": true
+        },
+        "throttleMinutes": {
+          "description": "Throttle window for the UserPromptSubmit auto-update. atl update --silent-if-clean will skip if the previous run was within this many minutes. Default 30. Lower values (e.g. 5) update more aggressively at the cost of more git-fetch traffic.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "default": 30
+        },
+        "selfCheckEnabled": {
+          "description": "Whether atl session-start checks the GitHub releases API for a newer atl binary. Set to false to silence the upgrade-available banner (e.g. on machines where brew/scoop/winget upgrades are managed centrally).",
+          "type": "boolean",
+          "default": true
+        },
+        "selfCheckHours": {
+          "description": "How often (in hours) atl session-start polls the GitHub releases API for a newer atl binary. Default 24. The check is rate-limited regardless of this value via the cache stamp at ~/.atl/cache/last-self-check.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 168,
+          "default": 24
+        }
+      }
+    },
+    "learningCapture": {
+      "description": "Learning-capture (transcript marker scanning) settings.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "autoScanEnabled": {
+          "description": "Whether atl session-start scans previous-session transcripts for <!-- learning --> markers and reports them in the new session's additionalContext. Set to false to opt out of the auto-trigger loop entirely (markers still accumulate in transcripts; manual /save-learnings invocation still works).",
+          "type": "boolean",
+          "default": true
+        },
+        "firstRunLookbackDays": {
+          "description": "On the first scan for a project (no state file yet), how many days of transcripts to consider. Default 7. Subsequent scans use the per-project lastProcessedAt timestamp from ~/.atl/state/learning-capture-state.json.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 7
+        }
+      }
+    },
+    "brainstorm": {
+      "description": "Brainstorm skill settings.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "markerBulletCap": {
+          "description": "Cap on the number of brainstorm-active marker bullets pinned to a scope's CLAUDE.md / README. When more than this many brainstorms are active in a single scope, the oldest are dropped from the marker block (the brainstorm files themselves are never deleted). Default 8.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 8
+        }
+      }
+    }
+  }
+}
