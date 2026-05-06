@@ -99,7 +99,7 @@ This changes how `doc-impact` should be set:
 - `doc-impact: breaking` — for changes that require a CHANGELOG entry alongside docs site updates (deprecations, removed commands, incompatible config changes).
 - `doc-impact: none` — internal change, no user-facing surface affected.
 
-The `.github` org-profile repo is the single exception to the uniform stub policy — its README is the org's public landing card and carries content. See [stub-policy-doc-impact-semantics wiki](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/stub-policy-doc-impact-semantics.md) for the historical context that produced these semantics.
+The `.github` org-profile repo is the single exception to the uniform stub policy — its README is the org's public landing card and carries content. See [stub-policy-doc-impact-semantics wiki](https://github.com/agentteamland/workspace/blob/main/.atl/wiki/stub-policy-doc-impact-semantics.md) for the historical context that produced these semantics.
 
 ## Relation to learning-capture
 

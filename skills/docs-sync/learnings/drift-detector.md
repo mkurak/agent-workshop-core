@@ -126,7 +126,7 @@ Markdown table summary at the top is fine; the structured records are what `doc-
 
 ## When the sub-agent should NOT report drift
 
-False-positive discipline is critical — the [docs-audit-false-positive-rate wiki page](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/docs-audit-false-positive-rate.md) recorded ~40% hallucinated findings on the 2026-05-02 sweep. Hard rules to suppress noise:
+False-positive discipline is critical — the [docs-audit-false-positive-rate wiki page](https://github.com/agentteamland/workspace/blob/main/.atl/wiki/docs-audit-false-positive-rate.md) recorded ~40% hallucinated findings on the 2026-05-02 sweep. Hard rules to suppress noise:
 
 1. **Always grep the source file before reporting a missing claim.** If the sub-agent thinks "the docs say X but X is missing", it MUST quote the source file's content via grep before claiming the gap.
 2. **Quote the doc claim verbatim.** Drift items must include the exact source text — no paraphrasing. This catches hallucinated "the docs say Y" claims at review time.
@@ -142,4 +142,4 @@ False-positive discipline is critical — the [docs-audit-false-positive-rate wi
 
 - [parity-checker.md](parity-checker.md) — bilingual mirror generator. Drift-detector reports drift; parity-checker handles the TR side.
 - [doc-rewriter.md](doc-rewriter.md) — converts drift items + marker bodies into actual doc drafts.
-- [docs-audit-false-positive-rate](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/docs-audit-false-positive-rate.md) — historical incident that drove the false-positive guards in this procedure.
+- [docs-audit-false-positive-rate](https://github.com/agentteamland/workspace/blob/main/.atl/wiki/docs-audit-false-positive-rate.md) — historical incident that drove the false-positive guards in this procedure.

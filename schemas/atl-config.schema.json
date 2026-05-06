@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/agentteamland/core/main/schemas/atl-config.schema.json",
   "title": "AgentTeamLand ATL Config",
-  "description": "Schema for atl-config.json — the user/project-tunable configuration layer for the atl CLI. Lives at ~/.atl/config.json (global) and ./.atl/config.json (project). Effective config is global-merged-with-project, with project overriding. Holds 9 user-tunable keys (see properties below). Decision context: workspace .claude/docs/atl-config-system.md (decided 2026-05-06).",
+  "description": "Schema for atl-config.json — the user/project-tunable configuration layer for the atl CLI. Lives at ~/.atl/config.json (global) and ./.atl/config.json (project). Effective config is global-merged-with-project, with project overriding. Holds 9 user-tunable keys (see properties below). Decision context: workspace .atl/docs/atl-config-system.md (decided 2026-05-06).",
   "type": "object",
   "required": ["schemaVersion"],
   "additionalProperties": false,

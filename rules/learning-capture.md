@@ -75,8 +75,8 @@ You read the report; invoke /save-learnings --from-markers --transcripts <paths>
         ↓
 /save-learnings:
    • categorizes each marker (decision / pattern / discovery / ...)
-   • writes journal entry (.claude/journal/<date>_<agent>.md, idempotent by hash)
-   • updates wiki pages (.claude/wiki/<topic>.md, replace-style for current truth)
+   • writes journal entry (.atl/journal/<date>_<agent>.md, idempotent by hash)
+   • updates wiki pages (.atl/wiki/<topic>.md, replace-style for current truth)
    • rebuilds <!-- wiki:index --> marker block in CLAUDE.md
    • updates agent children/<topic>.md (with knowledge-base-summary frontmatter)
    • rebuilds agent.md Knowledge Base section from children frontmatter
@@ -135,8 +135,8 @@ This rule has gone through three shapes:
 
 1. **Original (pre-`atl` versions):** "Claude should proactively save learnings at the end of every session." Worked sometimes; depended on Claude remembering a prose instruction. Unreliable.
 
-2. **First atl version (v0.2.0 — `core@1.3.0`):** Inline markers + `atl learning-capture` registered on `SessionEnd` and `PreCompact` hooks. **Silently broken**: per Claude Code v2.1.x docs, those events do NOT deliver hook stdout to Claude's additionalContext. Marker reports went to debug logs and were lost. 324 markers across 9 sessions in the maintainer workspace produced zero auto-processing during the month it was in production. All actual save-learnings work in that period was triggered by manual user invocation, not hook output. See [claude-code-hook-output-events.md](https://github.com/agentteamland/workspace/blob/main/.claude/wiki/claude-code-hook-output-events.md) in workspace.
+2. **First atl version (v0.2.0 — `core@1.3.0`):** Inline markers + `atl learning-capture` registered on `SessionEnd` and `PreCompact` hooks. **Silently broken**: per Claude Code v2.1.x docs, those events do NOT deliver hook stdout to Claude's additionalContext. Marker reports went to debug logs and were lost. 324 markers across 9 sessions in the maintainer workspace produced zero auto-processing during the month it was in production. All actual save-learnings work in that period was triggered by manual user invocation, not hook output. See [claude-code-hook-output-events.md](https://github.com/agentteamland/workspace/blob/main/.atl/wiki/claude-code-hook-output-events.md) in workspace.
 
 3. **Current (v1.1.0+ — `core@1.8.0`):** Hook moved to `SessionStart` via the new `atl session-start` wrapper, scanning the previous session's transcripts via the new `--previous-transcripts` mode. Output reaches additionalContext. State file (~/.claude/state/learning-capture-state.json) tracks `lastProcessedAt` per project, written by `/save-learnings` on successful completion. The loop closes deterministically.
 
-The current shape was decided in the [self-updating-learning-loop](https://github.com/agentteamland/workspace/blob/main/.claude/docs/self-updating-learning-loop.md) brainstorm (workspace, 2026-05-02) and shipped via Phase 2.A (cli v1.1.0) + Phase 2.B (this rule + the save-learnings skill rewrite).
+The current shape was decided in the [self-updating-learning-loop](https://github.com/agentteamland/workspace/blob/main/.atl/docs/self-updating-learning-loop.md) brainstorm (workspace, 2026-05-02) and shipped via Phase 2.A (cli v1.1.0) + Phase 2.B (this rule + the save-learnings skill rewrite).

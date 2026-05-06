@@ -66,7 +66,7 @@ In hook + single modes, agent identification happens per-marker (each marker may
 
 **In hook + single modes**: extract every `<!-- learning -->` block from the listed transcripts. Each block already has `topic`, `kind`, `doc-impact`, `body`. Use those fields directly; don't re-classify.
 
-**Deduplication**: hash each learning by (topic + body). If the same hash already appears in `.claude/journal/` for the same agent + same calendar date, skip it (the marker was double-emitted, or this is a re-run after a prior partial save).
+**Deduplication**: hash each learning by (topic + body). If the same hash already appears in `.atl/journal/` for the same agent + same calendar date, skip it (the marker was double-emitted, or this is a re-run after a prior partial save).
 
 ### 3. Decide destination layers per learning
 
@@ -86,7 +86,7 @@ The first four rows happen silently. The last five rows go through `AskUserQuest
 
 ### 4. Write journal (Q4 — single layer for time-based content)
 
-File: `.claude/journal/{YYYY-MM-DD}_{agent-name}.md`
+File: `.atl/journal/{YYYY-MM-DD}_{agent-name}.md`
 
 If the file exists for this date+agent, append. If it doesn't, create it with YAML frontmatter:
 
@@ -121,18 +121,18 @@ tags: [learning, <kind1>, <kind2>, ...]
 - <cross-cutting notes, when applicable>
 ```
 
-**Idempotency**: before writing each bullet, hash (kind + topic + body) and check if that hash already appears in any `.claude/journal/{date}_*.md` for the same date. Skip duplicates.
+**Idempotency**: before writing each bullet, hash (kind + topic + body) and check if that hash already appears in any `.atl/journal/{date}_*.md` for the same date. Skip duplicates.
 
-> **Note on the 3-layer → 2-layer transition (Q4 of self-updating-learning-loop)**: previous versions of this skill wrote to both `.claude/agent-memory/{agent}-memory.md` AND `.claude/journal/{date}_{agent}.md`. After the v1.1.0 ship, agent-memory has been merged into journal; only journal/ is written. Existing agent-memory files in workspaces will be migrated by Phase 2.B's workspace-migration PR.
+> **Note on the 3-layer → 2-layer transition (Q4 of self-updating-learning-loop)**: previous versions of this skill wrote to both `.atl/agent-memory/{agent}-memory.md` AND `.atl/journal/{date}_{agent}.md`. After the v1.1.0 ship, agent-memory has been merged into journal; only journal/ is written. Existing agent-memory files in workspaces will be migrated by Phase 2.B's workspace-migration PR.
 
 ### 5. Update wiki
 
 For each learning whose shape is "topic-shaped current truth":
 
 1. Determine wiki page slug from the learning's topic (kebab-case)
-2. If `.claude/wiki/{slug}.md` exists → update (REPLACE outdated section, don't append)
+2. If `.atl/wiki/{slug}.md` exists → update (REPLACE outdated section, don't append)
 3. If it doesn't → create with the standard wiki page format (Last updated, Current truth section, Related section)
-4. Add a one-line entry to `.claude/wiki/index.md` if not already there
+4. Add a one-line entry to `.atl/wiki/index.md` if not already there
 
 Wiki pages reflect **current truth** — when a fact changes, old fact is replaced. Don't pile up dated sections (that's what journal is for).
 
@@ -144,11 +144,11 @@ After any wiki page write/update/delete, regenerate the `<!-- wiki:index:start .
 <!-- wiki:index:start -->
 ## 📚 Knowledge map
 
-Knowledge lives in `.claude/wiki/` (current truth, topic-organized) and `.claude/journal/` (historical record, date-based).
+Knowledge lives in `.atl/wiki/` (current truth, topic-organized) and `.atl/journal/` (historical record, date-based).
 
 **Wiki topics:**
-- [topic-1](.claude/wiki/topic-1.md) — one-line summary
-- [topic-2](.claude/wiki/topic-2.md) — one-line summary
+- [topic-1](.atl/wiki/topic-1.md) — one-line summary
+- [topic-2](.atl/wiki/topic-2.md) — one-line summary
 - ...
 
 **Discipline:** Before working on a topic, scan this list. If a topic looks relevant, read the page.
@@ -311,7 +311,7 @@ For team-repo maintainers with direct push access, this push lands on a PR branc
 📝 Learnings saved (mode: hook | single | manual)
 
   Markers processed: <N> across <M> transcripts
-  Journal: 1 entry (.claude/journal/2026-05-02_<agent>.md)
+  Journal: 1 entry (.atl/journal/2026-05-02_<agent>.md)
   Wiki: <X> pages updated, <Y> new pages, <Z> wiki:index marker rebuilt
   Agent children: <A> updated across <B> agents (KB sections auto-rebuilt)
   Skill learnings: <C> updated across <D> skills (Accumulated Learnings auto-rebuilt)

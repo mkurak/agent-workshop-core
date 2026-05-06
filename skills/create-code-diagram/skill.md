@@ -1,6 +1,6 @@
 ---
 name: create-code-diagram
-description: "Generate a full code-level Mermaid class diagram of the entire project. Shows all classes, interfaces, relationships, dependencies, and inheritance. Output saved to .claude/docs/code-diagram.md"
+description: "Generate a full code-level Mermaid class diagram of the entire project. Shows all classes, interfaces, relationships, dependencies, and inheritance. Output saved to .atl/docs/code-diagram.md"
 argument-hint: "[output-path]"
 ---
 
@@ -62,7 +62,7 @@ Create a complete `classDiagram` in Mermaid format. Include:
 
 ### 5. Write to File
 
-Default output: `.claude/docs/code-diagram.md`
+Default output: `.atl/docs/code-diagram.md`
 
 If an output path is provided as argument, use that instead.
 
