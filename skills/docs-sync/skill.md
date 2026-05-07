@@ -11,7 +11,7 @@ argument-hint: "[--markers | --audit | --since=<tag>] [--force]"
 Keep docs (README + the `agentteamland/docs` site) in sync with the **current shipping state** of every public agentteamland repo. Composite of three drift sources, each handled by its own sub-agent:
 
 1. **Marker-driven** — `<!-- learning doc-impact: ... -->` markers from prior conversations are drained into doc drafts.
-2. **Diff-driven** — when invoked from `/create-pr` Step 4.5, the PR's diff is scoped: cli flag-tarayıcı / version-pin / coverage sub-checks run only over the changed surfaces.
+2. **Diff-driven** — when invoked from `/create-pr` Step 4.5, the PR's diff is scoped: cli-flag-tarayıcı / versiyon-referansı-tarayıcı / kapsama-denetleyicisi sub-checks run only over the changed surfaces. (The sub-check identifiers are deliberately Turkish — they match the runtime sub-agent names referenced in `repos/cli/internal/docssync/state.go`.)
 3. **Comparison-driven** — full drift audit against the docs site: every CLI flag, every version pin, every team / skill / rule entry is verified against the source repos.
 
 For each drift item, an inline draft is presented to the user with accept / reject / edit choices. Accepted drafts commit to the active branch (under `/create-pr`) or to a fresh branch (manual mode).
@@ -61,7 +61,7 @@ Before invoking any sub-agent — even before reading transcripts or fetching re
    → No match = NOTHING to compare.
 
 3. Both paths empty?
-   → Print "✅ /docs-sync: doküman güncellemesi gerekmiyor" and exit 0.
+   → Print "✅ /docs-sync: no doc updates needed" and exit 0.
 ```
 
 For non-doc-affecting PRs (typo fixes, tests, internal refactors), pre-flight always returns empty. **Zero token cost.**
@@ -161,8 +161,8 @@ State file write is delegated to a future CLI command: `atl docs-sync --commit-f
 Single line at the end:
 
 ```
-✅ /docs-sync tamamlandı (3.2s, 0 alt-agent çağrıldı, 0 kayma)
-✅ /docs-sync tamamlandı (47s, 3 alt-agent çağrıldı, 5 kayma, 2 taslak kabul)
+✅ /docs-sync done (3.2s, 0 sub-agents invoked, 0 drift items)
+✅ /docs-sync done (47s, 3 sub-agents invoked, 5 drift items, 2 drafts accepted)
 ```
 
 Boring sessions are obvious from the elapsed time + zero counts. Productive sessions surface the work done.

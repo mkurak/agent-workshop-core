@@ -100,7 +100,7 @@ diff_match=$(git diff --cached --name-only | grep -E '^(cmd/atl/commands/|skills
 
 # Both empty? Skip Step 4.5 with a one-liner.
 if [ "$markers" -eq 0 ] && [ -z "$diff_match" ]; then
-  echo "✅ /docs-sync: doküman güncellemesi gerekmiyor (boş ön-kontrol)"
+  echo "✅ /docs-sync: no doc updates needed (empty pre-flight)"
   goto Step 5
 fi
 ```
