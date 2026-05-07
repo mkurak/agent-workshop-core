@@ -25,6 +25,7 @@ Full docs live at **[agentteamland.github.io/docs](https://agentteamland.github.
 - [Children + learnings](https://agentteamland.github.io/docs/guide/children-and-learnings) — agent / skill structure pattern + auto-rebuild contract
 - [Learning marker lifecycle](https://agentteamland.github.io/docs/guide/learning-marker-lifecycle) — `<!-- learning -->` markers, SessionStart hook, end-to-end flow
 - [Claude Code conventions](https://agentteamland.github.io/docs/guide/claude-code-conventions) — `<!-- wiki:index -->` / `<!-- brainstorm:active -->` / `<!-- pending-implementation -->` marker blocks
+- [Skill selection discipline](https://agentteamland.github.io/docs/guide/skill-selection-discipline) — assistant-side discipline for multi-team projects: survey installed skills, match prompt intent, disambiguate, never silently skip
 
 ### Operations + concepts
 

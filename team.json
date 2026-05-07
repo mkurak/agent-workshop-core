@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "core",
-  "version": "1.14.1",
-  "description": "Core infrastructure for AgentTeamLand teams \u2014 journal, wiki, knowledge-system, agent-structure, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy, schemas",
+  "version": "1.15.0",
+  "description": "Core infrastructure for AgentTeamLand teams \u2014 journal, wiki, knowledge-system, agent-structure, version-check, learning-capture, docs-sync, team-repo-maintenance, karpathy, skill-selection-discipline",
   "author": {
     "name": "AgentTeamLand",
     "url": "https://github.com/agentteamland"
@@ -72,6 +72,10 @@
     {
       "name": "branch-hygiene",
       "description": "Three checkpoints to counter drift: verify main + clean before tasks in shared repos; checkout main + pull right after PR merge; run local validator before pushing constrained files."
+    },
+    {
+      "name": "skill-selection-discipline",
+      "description": "Assistant-side discipline for multi-team projects: survey installed skills, match prompt intent to each skill's description, disambiguate when more than one applies, never silently skip."
     }
   ],
   "extends": null,
