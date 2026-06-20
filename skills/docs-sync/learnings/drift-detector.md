@@ -1,5 +1,5 @@
 ---
-knowledge-base-summary: "Three sub-checks run in parallel under one Task call: cli-flag-tarayıcı (CLI flag drift), versiyon-referansı-tarayıcı (version pin staleness), kapsama-denetleyicisi (skill/rule/agent → doc page coverage). Output is a structured drift list — file path, line, current value, current truth, suggested fix. Q4 of the docs-sync-automation brainstorm formalized the 3-check shape."
+knowledge-base-summary: "Three sub-checks run in parallel under one Task call: cli-flag-scanner (CLI flag drift), version-ref-scanner (version pin staleness), coverage-checker (skill/rule/agent → doc page coverage). Output is a structured drift list — file path, line, current value, current truth, suggested fix. Q4 of the docs-sync-automation brainstorm formalized the 3-check shape."
 ---
 
 # drift-detector sub-agent
@@ -30,7 +30,7 @@ The sub-agent does NOT write fixes. It reports drift; `doc-rewriter` (a separate
 Every drift item is one record:
 
 ```yaml
-- subcheck: cli-flag-tarayıcı | versiyon-referansı-tarayıcı | kapsama-denetleyicisi
+- subcheck: cli-flag-scanner | version-ref-scanner | coverage-checker
   severity: high | medium | low
   source-truth:
     location: path/to/source-file.go:NN  (or "binary --help output")
@@ -44,7 +44,7 @@ Every drift item is one record:
 
 Markdown table summary at the top is fine; the structured records are what `doc-rewriter` consumes.
 
-## Sub-check 1: `cli-flag-tarayıcı`
+## Sub-check 1: `cli-flag-scanner`
 
 **Catches Mode 1 of the original 3 failure modes** (speculative writing — docs claim a flag the binary does not have).
 
@@ -66,7 +66,7 @@ Markdown table summary at the top is fine; the structured records are what `doc-
 - `medium` — flag exists in binary but missing from doc table (discoverability gap).
 - `low` — description / default value mismatch (cosmetic).
 
-## Sub-check 2: `versiyon-referansı-tarayıcı`
+## Sub-check 2: `version-ref-scanner`
 
 **Catches Mode 2 of the original 3 failure modes** (time-frozen identity — docs reference a version that is no longer current).
 
@@ -97,7 +97,7 @@ Markdown table summary at the top is fine; the structured records are what `doc-
 - `medium` — team page header version stale.
 - `low` — narrative reference stale but copy-paste still works.
 
-## Sub-check 3: `kapsama-denetleyicisi`
+## Sub-check 3: `coverage-checker`
 
 **Catches Mode 3 of the original 3 failure modes** (coverage gaps — a shipped skill / rule / agent has no docs page, OR a docs page describes something that no longer ships).
 

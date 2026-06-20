@@ -11,7 +11,7 @@ argument-hint: "[--markers | --audit | --since=<tag>] [--force]"
 Keep docs (README + the `agentteamland/docs` site) in sync with the **current shipping state** of every public agentteamland repo. Composite of three drift sources, each handled by its own sub-agent:
 
 1. **Marker-driven** — `<!-- learning doc-impact: ... -->` markers from prior conversations are drained into doc drafts.
-2. **Diff-driven** — when invoked from `/create-pr` Step 4.5, the PR's diff is scoped: cli-flag-tarayıcı / versiyon-referansı-tarayıcı / kapsama-denetleyicisi sub-checks run only over the changed surfaces. (The sub-check identifiers are deliberately Turkish — they match the runtime sub-agent names referenced in `repos/cli/internal/docssync/state.go`.)
+2. **Diff-driven** — when invoked from `/create-pr` Step 4.5, the PR's diff is scoped: cli-flag-scanner / version-ref-scanner / coverage-checker sub-checks run only over the changed surfaces. (The sub-check identifiers are deliberately Turkish — they match the runtime sub-agent names referenced in `repos/cli/internal/docssync/state.go`.)
 3. **Comparison-driven** — full drift audit against the docs site: every CLI flag, every version pin, every team / skill / rule entry is verified against the source repos.
 
 For each drift item, an inline draft is presented to the user with accept / reject / edit choices. Accepted drafts commit to the active branch (under `/create-pr`) or to a fresh branch (manual mode).
@@ -114,9 +114,9 @@ Spawn `drift-detector` sub-agent (see [learnings/drift-detector.md](learnings/dr
 
 | Sub-check | Catches |
 |---|---|
-| `cli-flag-tarayıcı` | CLI flag drift — `--help` strings vs. doc page tables. |
-| `versiyon-referansı-tarayıcı` | Version pins (`v\d+\.\d+\.\d+`, `requires.atl >=`). |
-| `kapsama-denetleyicisi` | Coverage gaps — does every shipped skill / rule / agent have a docs page? |
+| `cli-flag-scanner` | CLI flag drift — `--help` strings vs. doc page tables. |
+| `version-ref-scanner` | Version pins (`v\d+\.\d+\.\d+`, `requires.atl >=`). |
+| `coverage-checker` | Coverage gaps — does every shipped skill / rule / agent have a docs page? |
 
 Diff scope means: only touch the parts of the source repos the PR actually changed. If the PR only adds a new skill, only the coverage check runs (fastest path).
 
