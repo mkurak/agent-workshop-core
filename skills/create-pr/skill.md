@@ -120,7 +120,7 @@ Skill(skill="docs-sync", args="--from-pr-context")
 The `/docs-sync` skill (see [`skills/docs-sync/skill.md`](../docs-sync/skill.md)) runs:
 
 1. **Marker drain** — extracts pending markers, hashes them against the state file, groups by target page, invokes `doc-rewriter` sub-agent per cluster.
-2. **Diff-driven sub-checks** — `drift-detector` sub-agent runs the 3 sub-checks (`cli-flag-tarayıcı`, `versiyon-referansı-tarayıcı`, `kapsama-denetleyicisi`) IN PARALLEL, scoped to the PR diff (not full repo).
+2. **Diff-driven sub-checks** — `drift-detector` sub-agent runs the 3 sub-checks (`cli-flag-scanner`, `version-ref-scanner`, `coverage-checker`) IN PARALLEL, scoped to the PR diff (not full repo).
 3. **Bilingual handling** — `parity-checker` sub-agent generates TR mirrors for accepted EN drafts via Mode 1 (same-pass translation).
 4. **Drafts** — each cluster surfaces an inline accept / reject / edit prompt.
 

@@ -12,9 +12,9 @@ Auto-activation mechanisms (per-team watch hooks, central dispatchers, lazy-load
 
 When the prompt could plausibly invoke a skill — i.e., it's not a trivial conversational turn — work through these in order:
 
-1. **Survey the union of installed skills.** Don't default to the most-recently-used team. Yesterday's session was a software refactor; today's prompt is "Ahmet'le toplantım var, ne sormam lazım?" — the right skill probably lives in a different team.
+1. **Survey the union of installed skills.** Don't default to the most-recently-used team. Yesterday's session was a software refactor; today's prompt is "I have a meeting with Alex tomorrow — what should I ask?" — the right skill probably lives in a different team.
 2. **Match prompt intent to each candidate skill's `description` frontmatter.** That field is what the skill exists for. Don't infer from the skill's name alone — `/save-learnings` and `/wiki ingest` look superficially similar but cover different scopes.
-3. **When more than one skill could apply, name them and disambiguate.** Either pick the strongest match with a one-line justification ("Bu kişisel bir konu, /journal ile başlıyorum") OR ask one clarifying question. Don't pick silently.
+3. **When more than one skill could apply, name them and disambiguate.** Either pick the strongest match with a one-line justification ("This is a personal matter — I'll start with /journal") OR ask one clarifying question. Don't pick silently.
 4. **When no installed skill applies, say so explicitly.** Silent non-invocation is indistinguishable from oversight; an explicit "no skill applies here, responding directly" closes the loop.
 
 ## Failure modes to watch
@@ -27,7 +27,7 @@ When the prompt could plausibly invoke a skill — i.e., it's not a trivial conv
 ## When this rule does NOT apply
 
 - **Trivial turns** (greetings, status questions, factual lookups that don't trigger any workflow).
-- **User explicitly named a skill** (e.g., "/save-learnings yap" — invoke as named, no second-guessing).
+- **User explicitly named a skill** (e.g., "/save-learnings" — invoke as named, no second-guessing).
 - **No teams installed** — only built-in Claude Code commands are in scope.
 
 ## How this rule interacts with other rules
